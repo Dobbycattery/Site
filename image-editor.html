@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Редактор image_list — Питомник «Добби»</title>
+<!-- Подключаем библиотеку для создания ZIP-архивов -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root {
     --bg: #04100a; --bg-soft: #07170e; --panel: #0a1f13; --panel-2: #0e2818;
@@ -50,6 +52,11 @@
   }
   .ed-btn--gold:hover { filter: brightness(1.05); color: #0b1405; }
   .ed-btn--danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,122,122,.08); }
+  .ed-btn--webp {
+    background: linear-gradient(180deg, #e0c3ff, #b77cff 60%, #8a45c9);
+    color: #150a22; border-color: rgba(230,210,255,.5); font-weight: 600;
+  }
+  .ed-btn--webp:hover { filter: brightness(1.05); color: #150a22; }
   .ed-btn:disabled { opacity: .5; cursor: wait; }
 
   /* Layout */
@@ -114,7 +121,7 @@
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
   }
-  .panel-head__actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .panel-head__actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
   .edit-grid {
     display: flex; gap: 10px; flex-wrap: wrap; width: 100%; margin-bottom: 14px;
@@ -168,6 +175,18 @@
   .photo-table td.actions { width: 150px; text-align: right; }
   .photo-table .actions .mini-btn { margin-left: 3px; }
 
+  /* Progress Bar */
+  .progress-bar {
+    height: 3px; background: rgba(168,255,62,.1); border-radius: 2px;
+    overflow: hidden; margin-bottom: 14px; display: none;
+  }
+  .progress-bar.is-on { display: block; }
+  .progress-bar span {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+    transition: width .2s;
+  }
+
   /* Toast */
   .ed-toast {
     position: fixed; left: 50%; bottom: 24px;
@@ -191,7 +210,7 @@
 <body>
 
 <header class="ed-header">
-  <h1>Редактор image_list <small>Питомник «Добби» · галерея</small></h1>
+  <h1>Редактор image_list <small>Питомник «Добби»</small></h1>
   <div class="ed-header__actions">
     <button class="ed-btn ed-btn--gold" id="btnScanFolder" type="button">📁 Сканировать папку images</button>
     <input type="file" id="folderInput" webkitdirectory multiple hidden>
@@ -224,7 +243,6 @@
 
 <div class="ed-toast" id="toast"></div>
 
-<!-- Подключаем файл с данными -->
 <script src="image_list.js"></script>
 <script>
 (() => {
@@ -247,6 +265,7 @@
 
   /* ---------------- Состояние ---------------- */
   let state = { lines: [], activeKey: null };
+  let uploadedFiles = []; // Храним оригинальные файлы для конвертации
   
   function emptyState() { return { lines: [], activeKey: null }; }
 
@@ -376,7 +395,7 @@
     if (!line) return;
     box.innerHTML = "";
 
-    // Панель редактирования свойств линии
+    // Панель редактирования свойств линии и кнопки
     const head = document.createElement("div");
     head.className = "panel-head";
     head.innerHTML = `
@@ -399,11 +418,23 @@
         </div>
       </div>
       <div class="panel-head__actions">
+        <div style="display:flex; align-items:center; gap:6px; margin-right: 10px;">
+          <label style="font-size:11px; color:var(--muted);">Качество WebP:</label>
+          <input type="number" id="webpQuality" value="80" min="10" max="100" step="10" style="width:50px; padding:4px; background:var(--bg); border:1px solid var(--line); color:var(--text);">
+        </div>
+        <button class="ed-btn ed-btn--webp" id="btnConvertWebp" type="button">📦 Скачать в WebP (ZIP)</button>
         <button class="ed-btn" id="btnDetectAll" type="button">Размеры всем</button>
-        <button class="ed-btn ed-btn--danger" id="btnClearPhotos" type="button">Очистить фото</button>
+        <button class="ed-btn ed-btn--danger" id="btnClearPhotos" type="button">Очистить</button>
       </div>
     `;
     box.appendChild(head);
+
+    // Прогресс-бар (скрыт по умолчанию)
+    const progress = document.createElement("div");
+    progress.className = "progress-bar";
+    progress.id = "progressBar";
+    progress.innerHTML = `<span></span>`;
+    box.appendChild(progress);
 
     // Обработчики полей редактирования
     const bindField = (id, field) => {
@@ -531,6 +562,106 @@
     $("#btnClearPhotos").addEventListener("click", () => {
       if (confirm("Удалить все фото из этой линии?")) { line.photos = []; render(); }
     });
+
+    // === КОНВЕРТАЦИЯ В WEBP ===
+    $("#btnConvertWebp").addEventListener("click", async () => {
+      const qualityInput = $("#webpQuality").value;
+      let quality = parseInt(qualityInput, 10) / 100;
+      if (isNaN(quality) || quality < 0.1 || quality > 1) quality = 0.8;
+
+      if (!uploadedFiles.length) {
+        return toast("Сначала отсканируйте папку с фото (кнопка сверху), чтобы редактор загрузил оригиналы.", true);
+      }
+
+      const btn = $("#btnConvertWebp");
+      const bar = $("#progressBar");
+      const span = bar.querySelector("span");
+      
+      btn.disabled = true;
+      btn.textContent = "⏳ Конвертирую...";
+      bar.classList.add("is-on");
+
+      try {
+        const zip = new JSZip();
+        let processed = 0;
+
+        // Перебираем ВСЕ загруженные файлы
+        for (const file of uploadedFiles) {
+          // Пропускаем не-картинки
+          if (!file.type.startsWith("image/")) continue;
+
+          // Получаем путь внутри папки images
+          let relPath = file.webkitRelativePath || file.name;
+          const parts = relPath.split("/");
+          // Если путь начинается с имени корневой папки (например "images"), отрезаем его
+          if (parts[0] === "images" || parts[0] === "photos") parts.shift();
+          relPath = parts.join("/");
+
+          // Меняем расширение на .webp
+          const webpPath = relPath.replace(/\.(jpe?g|png|gif|bmp)$/i, ".webp");
+
+          // Конвертируем
+          const blob = await convertToWebp(file, quality);
+          if (blob) zip.file(webpPath, blob);
+
+          processed++;
+          span.style.width = `${Math.round((processed / uploadedFiles.length) * 100)}%`;
+        }
+
+        // Генерируем ZIP
+        const content = await zip.generateAsync({ type: "blob" });
+        
+        // Скачиваем
+        const url = URL.createObjectURL(content);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "images_webp.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        // Меняем пути в списке на .webp
+        state.lines.forEach(l => {
+          l.photos.forEach(p => {
+            p.src = p.src.replace(/\.(jpe?g|png|gif|bmp)$/i, ".webp");
+          });
+        });
+        saveLocal();
+        render();
+
+        toast("✅ Готово! ZIP скачан. Распакуйте его в папку images. Пути в списке обновлены на .webp");
+      } catch (err) {
+        console.error(err);
+        toast("Ошибка при конвертации: " + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "📦 Скачать в WebP (ZIP)";
+        bar.classList.remove("is-on");
+        span.style.width = "0";
+      }
+    });
+  }
+
+  // Конвертер одной картинки
+  function convertToWebp(file, quality) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(url);
+          resolve(blob);
+        }, "image/webp", quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
   }
 
   /* ---------------- События сайдбара ---------------- */
@@ -577,9 +708,9 @@
   function bindScan() {
     $("#btnScanFolder").addEventListener("click", () => $("#folderInput").click());
     $("#folderInput").addEventListener("change", async (e) => {
-      const files = Array.from(e.target.files);
+      uploadedFiles = Array.from(e.target.files); // Сохраняем файлы!
       e.target.value = "";
-      await scanFiles(files);
+      await scanFiles(uploadedFiles);
     });
 
     $("#btnAddFiles").addEventListener("click", () => $("#filesInput").click());
@@ -588,6 +719,7 @@
       e.target.value = "";
       const line = getActiveLine();
       if (!line) return toast("Выберите линию", true);
+      
       let added = 0;
       for (const f of files) {
         if (!f.type.startsWith("image/")) continue;
@@ -622,7 +754,17 @@
         state.lines.push(line); newLines++;
       }
       for (const f of items) {
-        const src = `images/${folder}/${f.name}`;
+        // ВАЖНО: сохраняем относительный путь как в папке
+        const relPath = f.webkitRelativePath || f.name;
+        let src = relPath;
+        // Если файл выбран из папки "images", путь будет "images/папка/файл.jpg"
+        // Если из вложенной, то скрипт подхватит верный путь
+        const parts = relPath.split("/");
+        if (parts[0] !== "images") {
+           // если пользователь зашел внутрь папки и выбрал подпапки
+           src = "images/" + relPath; 
+        }
+
         if (line.photos.some(p => p.src === src)) continue;
         const dims = await fileDims(f);
         line.photos.push({ src, w: dims?.[0], h: dims?.[1] });
