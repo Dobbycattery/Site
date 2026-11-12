@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Питомник ориентальных кошек «Добби» — Новокузнецк</title>
+<meta name="description" content="Питомник ориентальных кошек «Добби» в Новокузнецке: шоколадная, голубая, лиловая и чёрная линии. Коты с характером домового из Хогвартса — огромные уши, клиновидная морда и сердце нараспашку.">
+<meta name="theme-color" content="#04100a">
+<meta name="color-scheme" content="dark light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Питомник ориентальных кошек «Добби»">
+<meta property="og:description" content="Маленькие домовые с огромными ушами. Ориенталы шоколадного, голубого, лилового и чёрного окрасов.">
+<meta property="og:image" content="assets/img/full/dobby-2292.jpg">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Питомник «Добби»">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2304100a'/%3E%3Cpath d='M32 8 54 15v17c0 12-9 19-22 24C19 51 10 44 10 32V15z' fill='none' stroke='%23a8ff3e' stroke-width='2'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='26' fill='%23d6ff9b' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="preload" as="image" href="assets/img/full/dobby-2292.jpg">
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>if (location.search.indexOf("static") !== -1) document.documentElement.classList.add("static");</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Питомник ориентальных кошек «Добби»",
+  "alternateName": "Dobby Oriental Cattery",
+  "description": "Питомник ориентальных короткошёрстных кошек: шоколадная, голубая, лиловая и чёрная линии.",
+  "telephone": "+7-999-648-24-66",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Новокузнецк",
+    "addressCountry": "RU"
+  },
+  "sameAs": ["https://vk.ru/dobby_bastensk"],
+  "logo": "assets/img/full/dobby-2292.jpg"
+}
+</script>
+</head>
+<body>
+
+<a class="skip" href="#about">Перейти к содержанию</a>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+<canvas class="spark-layer" id="sparks" aria-hidden="true"></canvas>
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<div class="rail" id="rail" aria-hidden="true">
+  <span class="rail__line"><i class="rail__fill" id="railFill"></i></span>
+  <span class="rail__paw" data-at="0.2"><svg class="icon"><use href="#i-paw"></use></svg></span>
+  <span class="rail__paw" data-at="0.44"><svg class="icon"><use href="#i-paw"></use></svg></span>
+  <span class="rail__paw" data-at="0.68"><svg class="icon"><use href="#i-paw"></use></svg></span>
+  <span class="rail__paw" data-at="0.9"><svg class="icon"><use href="#i-paw"></use></svg></span>
+  <span class="rail__tip" id="railTip"></span>
+</div>
+
+<svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-star4" viewBox="0 0 24 24"><path d="M12 1.6l2.05 8.35L22.4 12l-8.35 2.05L12 22.4l-2.05-8.35L1.6 12l8.35-2.05z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8l7.5 2.6v6.3c0 4.6-3.2 7.6-7.5 9.5-4.3-1.9-7.5-4.9-7.5-9.5V5.4z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8.6 11.8l2.3 2.4 4.5-4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.3S3.8 15.2 3.8 9.6A4.9 4.9 0 0112 6.1a4.9 4.9 0 018.2 3.5c0 5.6-8.2 10.7-8.2 10.7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-paw" viewBox="0 0 24 24"><ellipse cx="7" cy="8.2" rx="2" ry="2.6" fill="none" stroke="currentColor" stroke-width="1.3"/><ellipse cx="12" cy="6.4" rx="2" ry="2.8" fill="none" stroke="currentColor" stroke-width="1.3"/><ellipse cx="17" cy="8.2" rx="2" ry="2.6" fill="none" stroke="currentColor" stroke-width="1.3"/><ellipse cx="19.4" cy="13.4" rx="1.9" ry="2.3" fill="none" stroke="currentColor" stroke-width="1.3"/><ellipse cx="4.6" cy="13.4" rx="1.9" ry="2.3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M12 12c2.9 0 5.2 2.3 5.2 4.6 0 2.4-2.3 4.2-5.2 4.2s-5.2-1.8-5.2-4.2C6.8 14.3 9.1 12 12 12z" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+    <symbol id="i-feather" viewBox="0 0 24 24"><path d="M20 4c-6 0-11 3.4-13.4 8.2L4.4 19l6.8-2.2C16 14.3 19.4 9.5 20 4z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M5 19L17 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9.5 6C6.4 7.3 4.5 9.9 4.5 13.2v4.3h5V13H7.2c0-2 .9-3.4 2.9-4.3zm10 0c-3.1 1.3-5 3.9-5 7.2v4.3h5V13h-2.3c0-2 .9-3.4 2.9-4.3z" fill="currentColor"/></symbol>
+    <symbol id="i-crest" viewBox="0 0 120 132">
+      <path d="M60 6 110 20v42c0 30-22 50-50 64C32 112 10 92 10 62V20Z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      <path d="M60 14 102 26v36c0 25-18 42-42 54-24-12-42-29-42-54V26Z" stroke="currentColor" stroke-width=".6" opacity=".45" fill="none"/>
+      <path d="M45 45 36 21l23 16M75 45l9-24-23 16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+      <path d="M50 44v42h7c15 0 25-8.5 25-21s-10-21-25-21Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+      <path d="M60 99l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="currentColor" opacity=".85"/>
+    </symbol>
+    <symbol id="i-vk" viewBox="0 0 24 24"><path d="M12.8 17.9c-6 0-9.6-4.2-9.7-11.1h3c.1 5.1 2.4 7.3 4.1 7.7V6.8h2.9v4.4c1.7-.2 3.4-2.1 4-4.4h2.9c-.4 2.7-2.2 4.6-3.5 5.4 1.3.7 3.4 2.4 4.1 5.7h-3.2c-.6-2-2.1-3.6-4.3-3.8v3.8z" fill="currentColor"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.7 3.4h2.8l1.6 4-2.1 1.5a12 12 0 005.9 5.9l1.5-2.1 4 1.6v2.8a2.1 2.1 0 01-2.3 2.1C11.1 18.9 5.1 12.9 4.6 5.7a2.1 2.1 0 012.1-2.3z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="header" id="header">
+  <a class="brand" href="#home" aria-label="Добби — на главную">
+    <svg class="crest brand__crest" viewBox="0 0 120 132" fill="none" aria-hidden="true">
+      <path d="M60 6 110 20v42c0 30-22 50-50 64C32 112 10 92 10 62V20Z" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M60 14 102 26v36c0 25-18 42-42 54-24-12-42-29-42-54V26Z" stroke="currentColor" stroke-width=".6" opacity=".45"/>
+      <path d="M45 45 36 21l23 16M75 45l9-24-23 16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M50 44v42h7c15 0 25-8.5 25-21s-10-21-25-21Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M60 99l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6-4.6-1.7 4.6-1.7z" fill="currentColor" opacity=".85"/>
+    </svg>
+    <span class="brand__text">
+      <span class="brand__name">Добби</span>
+      <span class="brand__sub">Oriental Shorthair · питомник</span>
+    </span>
+  </a>
+
+  <nav class="nav" id="nav" aria-label="Основная навигация">
+    <ul class="nav__list">
+      <li><a class="nav__link" href="#about">О питомнике</a></li>
+      <li><a class="nav__link" href="#stars">Кошки</a></li>
+      <li><a class="nav__link" href="#gallery">Галерея</a></li>
+      <li><a class="nav__link" href="#breed">Порода</a></li>
+      <li><a class="nav__link" href="#path">Как забрать</a></li>
+      <li><a class="nav__link" href="#contacts">Контакты</a></li>
+      <li class="nav__item--cta"><a class="nav__link" href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener">Написать в VK</a></li>
+      <li class="nav__item--cta"><a class="nav__link" href="tel:+79996482466">Позвонить</a></li>
+    </ul>
+  </nav>
+
+  <div class="header__actions">
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить освещение">
+      <svg class="icon theme-toggle__sun"><use href="#i-sun"></use></svg>
+      <svg class="icon theme-toggle__moon"><use href="#i-moon"></use></svg>
+      <span class="theme-toggle__label"><span class="lbl-dark">Люмос</span><span class="lbl-light">Нокс</span></span>
+    </button>
+    <a class="btn btn--gold btn--sm header__cta" href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener">
+      <span>Написать</span>
+      <svg class="icon"><use href="#i-arrow"></use></svg>
+    </a>
+    <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="home">
+    <canvas class="hero__dust" id="dust" aria-hidden="true"></canvas>
+    <div class="hero__lines" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--a" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--b" aria-hidden="true"></div>
+    <div class="hero__seal" aria-hidden="true">
+      <svg viewBox="0 0 120 132" fill="none">
+        <path d="M60 6 110 20v42c0 30-22 50-50 64C32 112 10 92 10 62V20Z" stroke="currentColor" stroke-width="1"/>
+        <path d="M45 45 36 21l23 16M75 45l9-24-23 16" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M50 44v42h7c15 0 25-8.5 25-21s-10-21-25-21Z" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </div>
+    <div class="candlestick candlestick--1" aria-hidden="true">
+      <svg viewBox="0 0 100 260" fill="none">
+        <defs>
+          <linearGradient id="brass1" x1="24" y1="0" x2="76" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3f3216"/><stop offset=".3" stop-color="#b8924e"/><stop offset=".55" stop-color="#7a5c2a"/><stop offset=".8" stop-color="#caa765"/><stop offset="1" stop-color="#3f3216"/>
+          </linearGradient>
+          <linearGradient id="wax1" x1="42" y1="0" x2="58" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#cfc3a0"/><stop offset=".35" stop-color="#fbf6e3"/><stop offset=".7" stop-color="#ece2c4"/><stop offset="1" stop-color="#bfb28d"/>
+          </linearGradient>
+          <radialGradient id="halo1" cx="50" cy="78" r="34" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd894" stop-opacity=".5"/><stop offset=".55" stop-color="#ffc76a" stop-opacity=".14"/><stop offset="1" stop-color="#ffc76a" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="flame1" cx="50" cy="82" r="12" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#fffbe8"/><stop offset=".4" stop-color="#ffe7a6"/><stop offset=".75" stop-color="#ffb64d"/><stop offset="1" stop-color="#ff9a2e" stop-opacity=".7"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="78" r="34" fill="url(#halo1)"/>
+        <ellipse cx="50" cy="247" rx="33" ry="9" fill="#241a09" opacity=".85"/>
+        <ellipse cx="50" cy="242" rx="33" ry="9" fill="url(#brass1)"/>
+        <ellipse cx="50" cy="238" rx="24" ry="6" fill="#5c451f"/>
+        <path d="M30 238c4-11 36-11 40 0Z" fill="url(#brass1)"/>
+        <ellipse cx="50" cy="236" rx="14" ry="4" stroke="#a8ff3e" stroke-opacity=".4"/>
+        <path d="M42 234 43.5 148h13L58 234Z" fill="url(#brass1)"/>
+        <circle cx="50" cy="188" r="11" fill="url(#brass1)"/>
+        <circle cx="50" cy="188" r="5.5" fill="#332610" opacity=".6"/>
+        <rect x="35" y="136" width="30" height="10" rx="4" fill="url(#brass1)"/>
+        <path d="M27 136c8-9 38-9 46 0l-4 8c-12-6-26-6-38 0Z" fill="url(#brass1)"/>
+        <path d="M30 143c12-5 28-5 40 0" stroke="#a8ff3e" stroke-opacity=".35"/>
+        <rect x="42" y="96" width="16" height="42" rx="2.5" fill="url(#wax1)"/>
+        <path d="M42 104c3 5 3 9 0 14" stroke="#fffdf2" stroke-width="1.2" opacity=".5"/>
+        <path d="M50 96v-8" stroke="#3a2e18" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="candle-flame">
+          <path d="M50 62c7 10 8.5 18 5.5 24-2 4-8 4-10 0-3-6-1.5-14 4.5-24Z" fill="url(#flame1)"/>
+          <path d="M50 72c3 5 3.8 9 2.4 12-1 1.8-3.8 1.8-4.8 0-1.6-3-1-7 2.4-12Z" fill="#fffdf2" opacity=".9"/>
+          <circle cx="50" cy="84" r="2" fill="#fff" opacity=".8"/>
+        </g>
+      </svg>
+      <span class="candlestick__spark"></span>
+      <span class="candlestick__spark candlestick__spark--2"></span>
+    </div>
+
+    <div class="candlestick candlestick--2" aria-hidden="true">
+      <svg viewBox="0 0 100 260" fill="none">
+        <defs>
+          <linearGradient id="brass2" x1="24" y1="0" x2="76" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3f3216"/><stop offset=".3" stop-color="#b8924e"/><stop offset=".55" stop-color="#7a5c2a"/><stop offset=".8" stop-color="#caa765"/><stop offset="1" stop-color="#3f3216"/>
+          </linearGradient>
+          <linearGradient id="wax2" x1="42" y1="0" x2="58" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#cfc3a0"/><stop offset=".35" stop-color="#fbf6e3"/><stop offset=".7" stop-color="#ece2c4"/><stop offset="1" stop-color="#bfb28d"/>
+          </linearGradient>
+          <radialGradient id="halo2" cx="50" cy="78" r="34" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd894" stop-opacity=".5"/><stop offset=".55" stop-color="#ffc76a" stop-opacity=".14"/><stop offset="1" stop-color="#ffc76a" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="flame2" cx="50" cy="82" r="12" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#fffbe8"/><stop offset=".4" stop-color="#ffe7a6"/><stop offset=".75" stop-color="#ffb64d"/><stop offset="1" stop-color="#ff9a2e" stop-opacity=".7"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="78" r="34" fill="url(#halo2)"/>
+        <ellipse cx="50" cy="247" rx="33" ry="9" fill="#241a09" opacity=".85"/>
+        <ellipse cx="50" cy="242" rx="33" ry="9" fill="url(#brass2)"/>
+        <ellipse cx="50" cy="238" rx="24" ry="6" fill="#5c451f"/>
+        <path d="M30 238c4-11 36-11 40 0Z" fill="url(#brass2)"/>
+        <ellipse cx="50" cy="236" rx="14" ry="4" stroke="#a8ff3e" stroke-opacity=".4"/>
+        <path d="M42 234 43.5 148h13L58 234Z" fill="url(#brass2)"/>
+        <circle cx="50" cy="188" r="11" fill="url(#brass2)"/>
+        <circle cx="50" cy="188" r="5.5" fill="#332610" opacity=".6"/>
+        <rect x="35" y="136" width="30" height="10" rx="4" fill="url(#brass2)"/>
+        <path d="M27 136c8-9 38-9 46 0l-4 8c-12-6-26-6-38 0Z" fill="url(#brass2)"/>
+        <path d="M30 143c12-5 28-5 40 0" stroke="#a8ff3e" stroke-opacity=".35"/>
+        <rect x="42" y="96" width="16" height="42" rx="2.5" fill="url(#wax2)"/>
+        <path d="M42 104c3 5 3 9 0 14" stroke="#fffdf2" stroke-width="1.2" opacity=".5"/>
+        <path d="M50 96v-8" stroke="#3a2e18" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="candle-flame">
+          <path d="M50 62c7 10 8.5 18 5.5 24-2 4-8 4-10 0-3-6-1.5-14 4.5-24Z" fill="url(#flame2)"/>
+          <path d="M50 72c3 5 3.8 9 2.4 12-1 1.8-3.8 1.8-4.8 0-1.6-3-1-7 2.4-12Z" fill="#fffdf2" opacity=".9"/>
+          <circle cx="50" cy="84" r="2" fill="#fff" opacity=".8"/>
+        </g>
+      </svg>
+      <span class="candlestick__spark"></span>
+      <span class="candlestick__spark candlestick__spark--2"></span>
+    </div>
+
+    <div class="candlestick candlestick--3" aria-hidden="true">
+      <svg viewBox="0 0 100 260" fill="none">
+        <defs>
+          <linearGradient id="brass3" x1="24" y1="0" x2="76" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3f3216"/><stop offset=".3" stop-color="#b8924e"/><stop offset=".55" stop-color="#7a5c2a"/><stop offset=".8" stop-color="#caa765"/><stop offset="1" stop-color="#3f3216"/>
+          </linearGradient>
+          <linearGradient id="wax3" x1="42" y1="0" x2="58" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#cfc3a0"/><stop offset=".35" stop-color="#fbf6e3"/><stop offset=".7" stop-color="#ece2c4"/><stop offset="1" stop-color="#bfb28d"/>
+          </linearGradient>
+          <radialGradient id="halo3" cx="50" cy="78" r="34" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd894" stop-opacity=".5"/><stop offset=".55" stop-color="#ffc76a" stop-opacity=".14"/><stop offset="1" stop-color="#ffc76a" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="flame3" cx="50" cy="82" r="12" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#fffbe8"/><stop offset=".4" stop-color="#ffe7a6"/><stop offset=".75" stop-color="#ffb64d"/><stop offset="1" stop-color="#ff9a2e" stop-opacity=".7"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="78" r="34" fill="url(#halo3)"/>
+        <ellipse cx="50" cy="247" rx="33" ry="9" fill="#241a09" opacity=".85"/>
+        <ellipse cx="50" cy="242" rx="33" ry="9" fill="url(#brass3)"/>
+        <ellipse cx="50" cy="238" rx="24" ry="6" fill="#5c451f"/>
+        <path d="M30 238c4-11 36-11 40 0Z" fill="url(#brass3)"/>
+        <ellipse cx="50" cy="236" rx="14" ry="4" stroke="#a8ff3e" stroke-opacity=".4"/>
+        <path d="M42 234 43.5 148h13L58 234Z" fill="url(#brass3)"/>
+        <circle cx="50" cy="188" r="11" fill="url(#brass3)"/>
+        <circle cx="50" cy="188" r="5.5" fill="#332610" opacity=".6"/>
+        <rect x="35" y="136" width="30" height="10" rx="4" fill="url(#brass3)"/>
+        <path d="M27 136c8-9 38-9 46 0l-4 8c-12-6-26-6-38 0Z" fill="url(#brass3)"/>
+        <path d="M30 143c12-5 28-5 40 0" stroke="#a8ff3e" stroke-opacity=".35"/>
+        <rect x="42" y="96" width="16" height="42" rx="2.5" fill="url(#wax3)"/>
+        <path d="M42 104c3 5 3 9 0 14" stroke="#fffdf2" stroke-width="1.2" opacity=".5"/>
+        <path d="M50 96v-8" stroke="#3a2e18" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="candle-flame">
+          <path d="M50 62c7 10 8.5 18 5.5 24-2 4-8 4-10 0-3-6-1.5-14 4.5-24Z" fill="url(#flame3)"/>
+          <path d="M50 72c3 5 3.8 9 2.4 12-1 1.8-3.8 1.8-4.8 0-1.6-3-1-7 2.4-12Z" fill="#fffdf2" opacity=".9"/>
+          <circle cx="50" cy="84" r="2" fill="#fff" opacity=".8"/>
+        </g>
+      </svg>
+      <span class="candlestick__spark"></span>
+      <span class="candlestick__spark candlestick__spark--2"></span>
+    </div>
+
+    <div class="broom" aria-hidden="true">
+      <div class="broom__inner">
+        <svg viewBox="0 0 345 180" fill="none">
+          <path d="M176 66 L332 10 L337 23 L182 84 Z" fill="#04120a"/>
+          <path d="M158 62 L184 70 L176 98 L150 90 Z" fill="#04120a"/>
+          <path d="M168.0 60.0 L48.3 173.2 L67.8 150.3 L34.2 162.8 L62.2 138.4 L28.2 147.0 L51.9 128.5 L30.1 128.8 L45.0 116.4 L26.2 113.7 L43.2 102.7 L22.9 98.3 L47.7 88.7 L15.4 82.7 L34.2 75.2 L21.3 66.8 L46.2 62.3 L14.7 49.4 L36.1 46.1 L19.6 33.4 L178.0 100.0 Z" fill="#04120a"/>
+          <path d="M176 66 L332 10 L337 23 L182 84 Z" fill="none" stroke="#7dc42a" stroke-opacity=".3" stroke-width="1"/>
+          <path d="M168.0 60.0 L48.3 173.2 L67.8 150.3 L34.2 162.8 L62.2 138.4 L28.2 147.0 L51.9 128.5 L30.1 128.8 L45.0 116.4 L26.2 113.7 L43.2 102.7 L22.9 98.3 L47.7 88.7 L15.4 82.7 L34.2 75.2 L21.3 66.8 L46.2 62.3 L14.7 49.4 L36.1 46.1 L19.6 33.4 L178.0 100.0 Z" fill="none" stroke="#7dc42a" stroke-opacity=".22" stroke-width="1"/>
+        </svg>
+        <span class="broom__spark broom__spark--1"></span>
+        <span class="broom__spark broom__spark--2"></span>
+        <span class="broom__spark broom__spark--3"></span>
+      </div>
+    </div>
+
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <p class="eyebrow">Питомник ориентальных кошек<span class="eyebrow__city"> · Новокузнецк</span></p>
+        <h1 class="hero__title">
+          <span class="hero__title-line">Добби</span>
+        </h1>
+        <p class="hero__tagline">маленькие домовые с большими ушами</p>
+        <p class="hero__lead">Коты, похожие на домовых из Хогвартса: огромные уши, клиновидная морда и сердце, в котором хватит места всему миру.</p>
+        <div class="hero__actions">
+          <a class="btn btn--gold" href="#stars"><span>Наши звёзды</span><svg class="icon"><use href="#i-arrow"></use></svg></a>
+          <a class="btn btn--ghost" href="#gallery"><span>Портретная галерея</span></a>
+        </div>
+        <ul class="hero__meta">
+          <li><svg class="icon icon--star"><use href="#i-star4"></use></svg>4 линии окрасов</li>
+          <li><svg class="icon icon--star"><use href="#i-star4"></use></svg>Родители с документами</li>
+          <li><svg class="icon icon--star"><use href="#i-star4"></use></svg>Помощь после переезда</li>
+        </ul>
+      </div>
+
+      <figure class="portrait" id="portrait">
+        <div class="arcane" aria-hidden="true">
+          <svg viewBox="0 0 400 400" fill="none" class="arcane__svg">
+            <circle cx="200" cy="200" r="197" stroke="currentColor" stroke-width=".6" opacity=".55"/>
+            <circle cx="200" cy="200" r="187" stroke="currentColor" stroke-width="1" stroke-dasharray="2 12" opacity=".5"/>
+            <circle cx="200" cy="200" r="160" stroke="currentColor" stroke-width=".5" opacity=".25"/>
+            <g class="arcane__spin" opacity=".4" stroke="currentColor" stroke-width=".7">
+              <circle cx="200" cy="200" r="176" stroke-dasharray="34 16"/>
+              <circle cx="200" cy="14" r="2.2" fill="currentColor" stroke="none"/>
+              <circle cx="200" cy="386" r="2.2" fill="currentColor" stroke="none"/>
+              <circle cx="14" cy="200" r="2.2" fill="currentColor" stroke="none"/>
+              <circle cx="386" cy="200" r="2.2" fill="currentColor" stroke="none"/>
+            </g>
+            <g class="arcane__spin arcane__spin--slow" opacity=".32" stroke="currentColor" stroke-width=".7">
+              <circle cx="200" cy="200" r="140" stroke-dasharray="1 9"/>
+              <circle cx="200" cy="200" r="118"/>
+            </g>
+          </svg>
+        </div>
+        <span class="spark spark--1" aria-hidden="true"></span>
+        <span class="spark spark--2" aria-hidden="true"></span>
+        <span class="spark spark--3" aria-hidden="true"></span>
+        <span class="mote mote--1" aria-hidden="true"></span>
+        <span class="mote mote--2" aria-hidden="true"></span>
+        <span class="mote mote--3" aria-hidden="true"></span>
+        <span class="mote mote--4" aria-hidden="true"></span>
+        <div class="portrait__frame">
+          <div class="portrait__img">
+            <img src="images/main2.jpg" alt="Скрябина Елена Александровна — основательница" width="500" height="600" fetchpriority="high">
+          </div>
+          <figcaption class="plaque">
+            <span class="plaque__name">Скрябина Елена Александровна</span>
+            <span class="plaque__sub">основательница питомника</span>
+          </figcaption>
+        </div>
+        <p class="portrait__note">«Добби — свободный эльф!»</p>
+      </figure>
+    </div>
+
+    <a class="hero__scroll" href="#about" aria-label="Листать вниз">
+      <span>Листайте</span>
+      <i aria-hidden="true"></i>
+    </a>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__track">
+      <div class="ticker__group">
+        <span>Добби</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Oriental Shorthair</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Маленькие домовые</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Шоколад · голубой · лиловый · чёрный</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Питомник с характером</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+      </div>
+      <div class="ticker__group">
+        <span>Добби</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Oriental Shorthair</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Маленькие домовые</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Шоколад · голубой · лиловый · чёрный</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+        <span>Питомник с характером</span><svg class="icon icon--star"><use href="#i-star4"></use></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PROMO ============ -->
+  <section class="section section--promo" id="promo">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal>
+        <p class="eyebrow">С чего начать</p>
+        <h2>Три двери в <em>питомник</em></h2>
+        <p class="lead">Загляните в галерею, познакомьтесь с линиями или сразу узнайте, как забрать котёнка домой.</p>
+      </div>
+
+      <div class="promo-cards">
+        <a class="promo-card" href="#stars" aria-label="Наши кошки — перейти к разделу">
+          <span class="promo-card__inner">
+            <span class="promo-card__face promo-card__face--back" aria-hidden="true">
+              <span class="promo-card__num">I</span>
+              <span class="promo-card__frame">
+                <svg class="crest promo-card__crest"><use href="#i-crest"></use></svg>
+                <span class="promo-card__brand">Питомник «Добби»</span>
+                <span class="promo-card__hint">переверните карту</span>
+              </span>
+            </span>
+            <span class="promo-card__face promo-card__face--front">
+              <span class="promo-card__frame">
+                <svg class="icon promo-card__icon"><use href="#i-paw"></use></svg>
+                <span class="promo-card__eyebrow">Четыре линии</span>
+                <span class="promo-card__title">Наши кошки</span>
+                <span class="promo-card__sep" aria-hidden="true"></span>
+                <span class="promo-card__text">Оливия, Аквамарин Мира, Лакриция и Бамби Добби</span>
+                <span class="promo-card__link">Открыть раздел <svg class="icon"><use href="#i-arrow"></use></svg></span>
+              </span>
+            </span>
+          </span>
+        </a>
+
+        <a class="promo-card" href="#gallery" aria-label="Портретная галерея — перейти к разделу">
+          <span class="promo-card__inner">
+            <span class="promo-card__face promo-card__face--back" aria-hidden="true">
+              <span class="promo-card__num">II</span>
+              <span class="promo-card__frame">
+                <svg class="crest promo-card__crest"><use href="#i-crest"></use></svg>
+                <span class="promo-card__brand">Питомник «Добби»</span>
+                <span class="promo-card__hint">переверните карту</span>
+              </span>
+            </span>
+            <span class="promo-card__face promo-card__face--front">
+              <span class="promo-card__frame">
+                <svg class="icon promo-card__icon"><use href="#i-star4"></use></svg>
+                <span class="promo-card__eyebrow">85 портретов</span>
+                <span class="promo-card__title">Портретная галерея</span>
+                <span class="promo-card__sep" aria-hidden="true"></span>
+                <span class="promo-card__text">Студийные кадры всех окрасов, с фильтром по линиям</span>
+                <span class="promo-card__link">Смотреть <svg class="icon"><use href="#i-arrow"></use></svg></span>
+              </span>
+            </span>
+          </span>
+        </a>
+
+        <a class="promo-card" href="#path" aria-label="Путь к домовому — как забрать котёнка">
+          <span class="promo-card__inner">
+            <span class="promo-card__face promo-card__face--back" aria-hidden="true">
+              <span class="promo-card__num">III</span>
+              <span class="promo-card__frame">
+                <svg class="crest promo-card__crest"><use href="#i-crest"></use></svg>
+                <span class="promo-card__brand">Питомник «Добби»</span>
+                <span class="promo-card__hint">переверните карту</span>
+              </span>
+            </span>
+            <span class="promo-card__face promo-card__face--front">
+              <span class="promo-card__frame">
+                <svg class="icon promo-card__icon"><use href="#i-feather"></use></svg>
+                <span class="promo-card__eyebrow">Как забрать</span>
+                <span class="promo-card__title">Путь к домовому</span>
+                <span class="promo-card__sep" aria-hidden="true"></span>
+                <span class="promo-card__text">Четыре шага: знакомство, разговор, бронь, переезд</span>
+                <span class="promo-card__link">Узнать <svg class="icon"><use href="#i-arrow"></use></svg></span>
+              </span>
+            </span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">О питомнике</p>
+        <h2>История одного <em>домового</em></h2>
+        <p class="lead">Питомник «Добби» — маленькая вселенная, где ориенталы живут по своим волшебным законам. Люди приходят сюда за котом, а остаются за характером.</p>
+      </div>
+
+      <div class="about__grid">
+        <article class="manuscript" data-reveal>
+          <span class="manuscript__mark" aria-hidden="true">✦</span>
+          <p>Всё началось с кота по имени Добби. У него огромные уши, взгляд философа и привычка появляться именно там, где его не ждали. Однажды он повернул голову — и стало ясно: в доме живёт настоящий домовой, сбежавший из Хогвартса.</p>
+          <p>С тех пор мы занимаемся ориентальными короткошёрстными: сохраняем породный тип, следим за здоровьем линий и ищем для каждого котёнка семью, где его будут любить так же сильно, как любим мы.</p>
+          <p>Сегодня в питомнике четыре линии — чёрная, голубая, лиловая и шоколадная. Четыре кошки, четыре характера и одна общая привычка: спать под одеялом.</p>
+          <p>Волшебных палочек мы не выдаём. Но коты у нас и правда волшебные.</p>
+          <p class="manuscript__sign">— питомник «Добби»</p>
+        </article>
+
+        <div class="vows">
+          <article class="vow" data-reveal>
+            <svg class="icon vow__icon"><use href="#i-shield"></use></svg>
+            <h3>Родители с документами</h3>
+            <p>Проверенные линии, тесты и честный рассказ о происхождении.</p>
+          </article>
+          <article class="vow" data-reveal>
+            <svg class="icon vow__icon"><use href="#i-heart"></use></svg>
+            <h3>Здоровье под контролем</h3>
+            <p>Наблюдение у ветеринара, обработки и прививки по возрасту.</p>
+          </article>
+          <article class="vow" data-reveal>
+            <svg class="icon vow__icon"><use href="#i-paw"></use></svg>
+            <h3>Социализация с рождения</h3>
+            <p>Котята растут в доме: руки, шум, дети и другие животные — привычная среда.</p>
+          </article>
+          <article class="vow" data-reveal>
+            <svg class="icon vow__icon"><use href="#i-feather"></use></svg>
+            <h3>Поддержка навсегда</h3>
+            <p>Отвечаем на вопросы и после переезда — сколько бы лет ни прошло.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STARS ============ -->
+  <section class="section section--stars" id="stars">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal>
+        <p class="eyebrow">Наши кошки</p>
+        <h2>Четыре линии, <em>четыре характера</em></h2>
+        <p class="lead">Оливия, Аквамарин Мира, Лакриция и Бамби Добби — четыре окраса, четыре взгляда и один общий породный тип.</p>
+      </div>
+
+      <!-- ✏️ Имена и описания кошек можно менять -->
+      <div class="stars">
+        <article class="star-card" data-reveal>
+          <div class="star-card__media">
+            <img src="images/bambi-dobby/IMG_2229web.jpg" decoding="async" alt="Бамби Добби — шоколадный ориентал" loading="lazy" width="400" height="600">
+            <span class="star-card__num">01</span>
+            <div class="plaque plaque--card">
+              <span class="plaque__name">Бамби Добби</span>
+              <span class="plaque__sub">кот-основатель</span>
+            </div>
+          </div>
+          <div class="star-card__body">
+            <p class="role">Шоколадная линия · chocolate</p>
+            <p>Тот самый кот, с которого всё началось: взгляд философа, уши-локаторы и уверенность, что он здесь главный.</p>
+            <button class="link-filter" type="button" data-filter-target="choc">Смотреть линию <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+        </article>
+
+        <article class="star-card" data-reveal>
+          <div class="star-card__media">
+            <img src="images/akvamarin-mira/IMG_2067web.jpg" decoding="async" alt="Аквамарин Мира — голубая ориентальная короткошёрстная с зелёными глазами" loading="lazy" width="600" height="600">
+            <span class="star-card__num">02</span>
+            <div class="plaque plaque--card">
+              <span class="plaque__name">Аквамарин Мира</span>
+              <span class="plaque__sub">голубая линия</span>
+            </div>
+          </div>
+          <div class="star-card__body">
+            <p class="role">Голубая линия · blue</p>
+            <p>Прохладная красота и глаза цвета зелья. Отвечает за породный тип голубой линии — и за порядок в доме.</p>
+            <button class="link-filter" type="button" data-filter-target="blue">Смотреть линию <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+        </article>
+
+        <article class="star-card" data-reveal>
+          <div class="star-card__media">
+            <img src="images/lakriciya/IMG_1934web.jpg" decoding="async" alt="Лакриция — лиловая ориентальная короткошёрстная" loading="lazy" width="600" height="400">
+            <span class="star-card__num">03</span>
+            <div class="plaque plaque--card">
+              <span class="plaque__name">Лакриция</span>
+              <span class="plaque__sub">лиловая линия</span>
+            </div>
+          </div>
+          <div class="star-card__body">
+            <p class="role">Лиловая линия · lilac</p>
+            <p>Тёплый пепельно-розовый оттенок, который невозможно сфотографировать без магии. И очень внимательный взгляд.</p>
+            <button class="link-filter" type="button" data-filter-target="lilac">Смотреть линию <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+        </article>
+
+        <article class="star-card" data-reveal>
+          <div class="star-card__media">
+            <img src="images/olivia/1D9A4937-got.jpg" decoding="async" alt="Оливия — чёрная ориентальная короткошёрстная с янтарными глазами" loading="lazy" width="600" height="400">
+            <span class="star-card__num">04</span>
+            <div class="plaque plaque--card">
+              <span class="plaque__name">Оливия</span>
+              <span class="plaque__sub">чёрная линия</span>
+            </div>
+          </div>
+          <div class="star-card__body">
+            <p class="role">Чёрная линия · black</p>
+            <p>Угольная шерсть и янтарные глаза. Нокс гасит свет — а Оливия, наоборот, притягивает все взгляды в комнате.</p>
+            <button class="link-filter" type="button" data-filter-target="black">Смотреть линию <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section class="section section--gallery" id="gallery">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">Галерея</p>
+        <h2>Портретная <em>галерея</em></h2>
+        <p class="lead">Студийные портреты наших котов и выпускников. Нажмите на фотографию, чтобы рассмотреть поближе.</p>
+      </div>
+
+      <div class="gallery__toolbar" data-reveal>
+        <div class="filters" role="group" aria-label="Фильтр по окрасу">
+          <button class="chip is-active" type="button" data-filter="all" aria-pressed="true">Все <span class="chip__count">85</span></button>
+          <button class="chip" type="button" data-filter="choc" aria-pressed="false">Шоколад <span class="chip__cat">· Бамби Добби</span> <span class="chip__count">48</span></button>
+          <button class="chip" type="button" data-filter="blue" aria-pressed="false">Голубой <span class="chip__cat">· Аквамарин Мира</span> <span class="chip__count">15</span></button>
+          <button class="chip" type="button" data-filter="lilac" aria-pressed="false">Лиловый <span class="chip__cat">· Лакриция</span> <span class="chip__count">15</span></button>
+          <button class="chip" type="button" data-filter="black" aria-pressed="false">Чёрный <span class="chip__cat">· Оливия</span> <span class="chip__count">7</span></button>
+        </div>
+        <p class="gallery__status" id="galleryStatus" aria-live="polite">Показано 15 из 85</p>
+      </div>
+
+      <div class="gallery" id="galleryGrid"></div>
+      <noscript><p class="gallery__note">Для портретной галереи нужен JavaScript — включите его, и все 85 портретов появятся.</p></noscript>
+
+      <div class="gallery__foot">
+        <button class="btn btn--ghost btn--wide" id="loadMore" type="button">
+          <span>Показать ещё</span>
+          <svg class="icon"><use href="#i-arrow"></use></svg>
+        </button>
+        <p class="gallery__note">Фото: архив питомника, студийные съёмки с выставок.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUOTE ============ -->
+  <section class="quote-band" aria-label="Цитата">
+    <div class="container">
+      <blockquote>
+        <svg class="icon quote-band__icon" aria-hidden="true"><use href="#i-quote"></use></svg>
+        <p>«Мастер дал Добби одежду» — а мы дарим <em>дом</em>.</p>
+        <cite>Питомник «Добби»</cite>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ============ BREED ============ -->
+  <section class="section" id="breed">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">Порода</p>
+        <h2>Ориентальная <em>короткошёрстная</em></h2>
+        <p class="lead">Кот с внешностью гоблина и характером самого преданного пса.</p>
+      </div>
+
+      <div class="breed">
+        <div class="breed__visual" data-reveal>
+          <figure class="breed__photo">
+            <img src="images/bambi-dobby/IMG_2207web.jpg" alt="Добби — шоколадный цвет и короткошёрсткий" loading="lazy" decoding="async" width="600" height="600">
+            <figcaption class="plaque plaque--card">
+              <span class="plaque__name">Добби</span>
+              <span class="plaque__sub">кот-основатель</span>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="breed__body">
+          <div class="breed__text" data-reveal>
+            <p>Ориентальная короткошёрстная — порода с «эльфийской» внешностью: огромные уши, клиновидная голова с прямым профилем, длинное стройное тело и короткая блестящая шерсть, которая плотно прилегает к коже. Именно за этот профиль их называют маленькими гоблинами и домовыми.</p>
+            <p>Характер — отдельное волшебство. Ориенталы очень привязаны к человеку, плохо переносят одиночество, ходят за хозяином по пятам, спят под одеялом и разговаривают — тихо, настойчиво и почти всегда с мнением.</p>
+            <p>Шерсть почти не линяет и не требует сложного ухода: достаточно мягкой щётки, тёплого пледа и любви.</p>
+            <blockquote class="pullquote">Ориентал выглядит как гоблин, разговаривает как профессор и ведёт себя как самый преданный пёс.</blockquote>
+            <button class="letter-link" type="button" data-open-letter>
+              <svg class="icon"><use href="#i-feather"></use></svg>
+              Добби принёс письмо о породе
+            </button>
+          </div>
+
+          <ul class="traits" data-reveal>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>Уши-локаторы</strong><span>Огромные, широкие у основания, слышат, как открывается холодильник.</span></li>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>Клин и профиль</strong><span>Клиновидная голова с прямым профилем и миндалевидными глазами.</span></li>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>Шерсть-шёлк</strong><span>Короткая, блестящая, плотно прилегает к телу.</span></li>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>Голос</strong><span>Очень разговорчивые: комментируют всё, что происходит дома.</span></li>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>Характер собаки</strong><span>Ходит следом, отзывается на имя, скучает в одиночестве.</span></li>
+            <li><svg class="icon icon--star"><use href="#i-star4"></use></svg><strong>300+ окрасов</strong><span>От классических до самых редких — почти любой цвет.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PATH ============ -->
+  <section class="section section--path" id="path">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal>
+        <p class="eyebrow">Как забрать</p>
+        <h2>Путь к <em>домовому</em></h2>
+        <p class="lead">Четыре шага — и в вашем доме появится собственный Добби.</p>
+      </div>
+
+      <ol class="steps">
+        <li class="step" data-reveal>
+          <span class="step__num">I</span>
+          <h3>Знакомство</h3>
+          <p>Напишите в группу ВКонтакте: расскажите, кого ищете и в какие сроки.</p>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num">II</span>
+          <h3>Разговор</h3>
+          <p>Задаём вопросы и отвечаем на ваши: об окрасе, характере, условиях жизни.</p>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num">III</span>
+          <h3>Бронь</h3>
+          <p>Выбираете котёнка, вносите бронь — и начинаете ждать встречи.</p>
+        </li>
+        <li class="step" data-reveal>
+          <span class="step__num">IV</span>
+          <h3>Переезд</h3>
+          <p>Отдаём с документами, прививками и памяткой. Остаёмся на связи.</p>
+        </li>
+      </ol>
+
+      <p class="steps__note" data-reveal>Котята уезжают домой не раньше трёх месяцев — когда готовы к переезду и привиты по возрасту.</p>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section section--diary" id="faq">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal>
+        <p class="eyebrow">Дневник питомника</p>
+        <h2>Спросите <em>дневник</em></h2>
+        <p class="lead">Коснитесь вопроса — и страница ответит сама, чернилами.</p>
+      </div>
+
+      <div class="diary" data-reveal>
+        <div class="diary__cover" aria-hidden="true">
+          <span class="diary__corner diary__corner--tl"></span>
+          <span class="diary__corner diary__corner--tr"></span>
+          <span class="diary__corner diary__corner--bl"></span>
+          <span class="diary__corner diary__corner--br"></span>
+          <svg class="diary__crest"><use href="#i-crest"></use></svg>
+          <span class="diary__label">Дневник<br>питомника</span>
+        </div>
+        <div class="diary__page">
+          <p class="diary__date">1 сентября. Новокузнецк.</p>
+          <div class="faq" id="faqList">
+            <div class="faq__item is-open">
+              <h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-a1">В каком возрасте котёнок уезжает домой?<span class="faq__icon" aria-hidden="true"></span></button></h3>
+              <div class="faq__a" id="faq-a1"><div><p>Не раньше трёх месяцев. К этому моменту он привит по возрасту, приучен к лотку и когтеточке, а главное — готов к новой семье.</p></div></div>
+            </div>
+            <div class="faq__item">
+              <h3><button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-a2">Можно ли забронировать котёнка заранее?<span class="faq__icon" aria-hidden="true"></span></button></h3>
+              <div class="faq__a" id="faq-a2"><div><p>Да. Бронь фиксирует выбор и снимает котёнка с продажи. Все условия обсуждаем в переписке — без сюрпризов.</p></div></div>
+            </div>
+            <div class="faq__item">
+              <h3><button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-a3">Отправляете ли котят в другие города?<span class="faq__icon" aria-hidden="true"></span></button></h3>
+              <div class="faq__a" id="faq-a3"><div><p>Да, помогаем с перевозкой и подбираем вариант, который безопасен для котёнка. Детали обсуждаем индивидуально.</p></div></div>
+            </div>
+            <div class="faq__item">
+              <h3><button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-a4">Уживаются ли ориенталы с детьми и собаками?<span class="faq__icon" aria-hidden="true"></span></button></h3>
+              <div class="faq__a" id="faq-a4"><div><p>Как правило, да: это очень социальные коты. Многое зависит от знакомства — расскажем, как всё устроить мягко.</p></div></div>
+            </div>
+            <div class="faq__item">
+              <h3><button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-a5">Почему у ориенталов такие уши?<span class="faq__icon" aria-hidden="true"></span></button></h3>
+              <div class="faq__a" id="faq-a5"><div><p>Так выглядит породный тип: большие уши — визитная карточка породы. И да, они действительно слышат, как открывается холодильник.</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACTS ============ -->
+  <section class="section section--contacts" id="contacts">
+    <div class="container">
+      <div class="contact-panel" data-reveal>
+        <div class="contact-panel__copy">
+          <p class="eyebrow">Контакты</p>
+          <h2>Напишите <em>нам</em></h2>
+          <p class="lead">Самый быстрый способ — сообщения группы ВКонтакте или звонок. Там новости питомника, помёты и фотографии выпускников.</p>
+          <div class="contact-panel__actions">
+            <a class="btn btn--vk" href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener">
+              <svg class="icon"><use href="#i-vk"></use></svg>
+              <span>Написать ВКонтакте</span>
+              <svg class="icon"><use href="#i-arrow"></use></svg>
+            </a>
+            <a class="btn btn--ghost" href="tel:+79996482466">
+              <svg class="icon"><use href="#i-phone"></use></svg>
+              <span>Позвонить</span>
+            </a>
+          </div>
+        </div>
+
+        <dl class="contact-list">
+          <div class="contact-list__row">
+            <dt>Телефон</dt>
+            <dd><a href="tel:+79996482466">+7 (999) 648-24-66</a></dd>
+          </div>
+          <div class="contact-list__row">
+            <dt>Группа</dt>
+            <dd><a href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener">vk.ru/dobby_bastensk</a></dd>
+          </div>
+          <div class="contact-list__row">
+            <dt>Город</dt>
+            <dd>Новокузнецк</dd>
+          </div>
+          <div class="contact-list__row">
+            <dt>Ответ</dt>
+            <dd>Обычно в течение дня</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <svg class="crest footer__crest" viewBox="0 0 120 132" fill="none" aria-hidden="true">
+        <path d="M60 6 110 20v42c0 30-22 50-50 64C32 112 10 92 10 62V20Z" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M45 45 36 21l23 16M75 45l9-24-23 16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M50 44v42h7c15 0 25-8.5 25-21s-10-21-25-21Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <p class="footer__name">Добби</p>
+        <p class="footer__tag">Питомник ориентальных кошек<br>Маленькие домовые с большими ушами</p>
+      </div>
+    </div>
+
+    <nav class="footer__nav" aria-label="Навигация в подвале">
+      <a href="#about">О питомнике</a>
+      <a href="#stars">Кошки</a>
+      <a href="#gallery">Галерея</a>
+      <a href="#breed">Порода</a>
+      <a href="#path">Как забрать</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+
+    <div class="footer__social">
+      <a class="social" href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener" aria-label="Группа ВКонтакте">
+        <svg class="icon"><use href="#i-vk"></use></svg>
+      </a>
+      <a class="footer__phone" href="tel:+79996482466">
+        <svg class="icon"><use href="#i-phone"></use></svg>
+        +7 (999) 648-24-66
+      </a>
+      <p class="footer__motto">Все совы прилетают вовремя.</p>
+      <p class="footer__hint">наберите <b>lumos</b> или <b>nox</b></p>
+    </div>
+  </div>
+
+  <div class="container footer__bottom">
+    <p>© <span id="year">2026</span> Питомник «Добби»</p>
+    <p>Сделано с любовью и щепоткой магии</p>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" type="button" aria-label="Наверх">
+  <svg class="icon"><use href="#i-up"></use></svg>
+</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast__star" aria-hidden="true">✦</span>
+  <p id="toastText"></p>
+</div>
+
+<audio id="siteMusic" src="main.mp3" loop preload="metadata"></audio>
+
+<button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Включить магическую музыку">
+  <span class="sound-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+  <span class="sound-toggle__tip">музыка</span>
+</button>
+
+<button class="letter-float" id="letterOpen" type="button" aria-haspopup="dialog" aria-label="Открыть письмо от Добби">
+  <img class="letter-float__dobby" src="images/Dobby.webp" alt="Добби с письмом" width="300" height="441">
+  <span class="letter-float__speech">
+    <span class="letter-float__speech-name">Добби</span>
+    <span class="letter-float__speech-text" data-speech>Добби принёс вам письмо от хозяина!</span>
+  </span>
+  <span class="letter-float__dot" aria-hidden="true"></span>
+</button>
+
+<div class="letter-modal" id="letterModal" role="dialog" aria-modal="true" aria-labelledby="letterTitle" hidden>
+  <div class="letter-modal__backdrop" data-letter-close></div>
+  <div class="letter-stage" id="letterStage">
+    <span class="letter-stage__roller letter-stage__roller--top" aria-hidden="true"></span>
+    <div class="letter-clip">
+      <article class="letter">
+        <button class="letter__close" id="letterClose" type="button" aria-label="Закрыть письмо">
+          <svg class="icon"><use href="#i-close"></use></svg>
+        </button>
+        <p class="letter__eyebrow">Письмо из Хогвартса</p>
+        <div class="letter__seal" aria-hidden="true">
+          <svg viewBox="0 0 120 132" fill="none">
+            <path d="M60 6 110 20v42c0 30-22 50-50 64C32 112 10 92 10 62V20Z" stroke="currentColor" stroke-width="1"/>
+            <path d="M45 45 36 21l23 16M75 45l9-24-23 16" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M50 44v42h7c15 0 25-8.5 25-21s-10-21-25-21Z" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <h2 class="letter__title" id="letterTitle">Дорогой друг,</h2>
+        <div class="letter__body">
+          <p>Если ты читаешь это письмо — значит, сова нашла тебя, а Добби не зря бежал через весь Новокузнецк. Меня зовут Добби, я домовой этого питомника, и я отвечаю за самое важное: уши, характер и немного магии.</p>
+          <p>Мы — питомник ориентальных короткошёрстных. Это порода с внешностью гоблина и сердцем собаки: огромные уши-локаторы, клиновидная голова, длинное стройное тело и короткая блестящая шерсть, которая почти не линяет.</p>
+          <p>Характер — отдельное волшебство. Ориенталы не любят одиночество, ходят за хозяином по пятам, спят под одеялом и разговаривают обо всём на свете. Если ты искал кота, который будет рядом всегда — это он.</p>
+          <p>Окрасов у породы больше трёхсот, а у нас — четыре линии: чёрная Оливия, голубая Аквамарин Мира, лиловая Лакриция и шоколадный Бамби Добби.</p>
+          <p>Если захочешь познакомиться — напиши нам. Только помни: котята уезжают домой не раньше трёх месяцев, когда готовы к переезду и привиты по возрасту.</p>
+        </div>
+        <p class="letter__sign">Добби,<br><span>домовой питомника</span></p>
+        <p class="letter__ps">P.S. Добби — свободный эльф. И очень ушастый.</p>
+        <div class="letter__actions">
+          <a class="btn btn--gold" href="https://vk.ru/dobby_bastensk" target="_blank" rel="noopener">Написать в VK</a>
+          <button class="btn btn--ghost" id="letterOk" type="button">Сложить письмо</button>
+        </div>
+      </article>
+    </div>
+    <span class="letter-stage__roller letter-stage__roller--bottom" aria-hidden="true"></span>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Просмотр фотографии" hidden>
+  <div class="lightbox__top">
+    <span class="lightbox__count" id="lightboxCount">1 / 15</span>
+    <button class="lightbox__close" id="lightboxClose" type="button" aria-label="Закрыть">
+      <svg class="icon"><use href="#i-close"></use></svg>
+    </button>
+  </div>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" type="button" aria-label="Предыдущая фотография">
+    <svg class="icon"><use href="#i-left"></use></svg>
+  </button>
+  <figure class="lightbox__figure">
+    <img id="lightboxImg" src="" alt="">
+    <figcaption class="lightbox__cap" id="lightboxCap"></figcaption>
+  </figure>
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" type="button" aria-label="Следующая фотография">
+    <svg class="icon"><use href="#i-right"></use></svg>
+  </button>
+</div>
+
+<script src="assets/js/main.js" defer></script>
+<script src="image_list.js"></script>
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

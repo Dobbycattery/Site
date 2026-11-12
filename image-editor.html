@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редактор image_list — Питомник «Добби»</title>
+<style>
+  :root {
+    --bg: #04100a; --bg-soft: #07170e; --panel: #0a1f13; --panel-2: #0e2818;
+    --text: #eaf6e2; --text-soft: #c9dcbd; --muted: #92aa85;
+    --gold: #a8ff3e; --gold-soft: #d6ff9b;
+    --line: rgba(168,255,62,.16); --line-strong: rgba(168,255,62,.4);
+    --danger: #ff7a7a; --warn: #ffd26a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; grid-template-rows: auto 1fr;
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; line-height: 1.45;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  a { color: var(--gold-soft); }
+
+  /* Header */
+  .ed-header {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--bg-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .ed-header h1 { margin: 0; font-size: 16px; color: var(--gold-soft); white-space: nowrap; }
+  .ed-header h1 small {
+    display: block; font-size: 11px; color: var(--muted);
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 400; margin-top: 2px;
+  }
+  .ed-header__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+  .ed-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px; border: 1px solid var(--line);
+    background: transparent; color: var(--text-soft);
+    border-radius: 3px; cursor: pointer; font-size: 13px;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .ed-btn:hover { border-color: var(--line-strong); color: var(--gold-soft); background: rgba(168,255,62,.05); }
+  .ed-btn--gold {
+    background: linear-gradient(180deg,#ddffa8,#b4f45a 60%,#7ab52a);
+    color: #0b1405; border-color: rgba(238,255,210,.5); font-weight: 600;
+  }
+  .ed-btn--gold:hover { filter: brightness(1.05); color: #0b1405; }
+  .ed-btn--danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,122,122,.08); }
+  .ed-btn:disabled { opacity: .5; cursor: wait; }
+
+  /* Layout */
+  .ed-main { display: grid; grid-template-columns: 300px 1fr; min-height: 0; }
+  .ed-sidebar {
+    border-right: 1px solid var(--line); background: var(--bg-soft);
+    overflow-y: auto; padding: 16px;
+  }
+  .ed-content { overflow-y: auto; padding: 16px 20px 60px; }
+
+  /* Sidebar */
+  .ed-section-title {
+    margin: 0 0 10px; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .line-list { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 6px; }
+  .line-item {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 4px; background: var(--panel); cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .line-item:hover { border-color: var(--line-strong); background: var(--panel-2); }
+  .line-item.is-active {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, rgba(168,255,62,.12), rgba(168,255,62,.02));
+  }
+  .line-item__name { font-weight: 600; color: var(--text); }
+  .line-item__meta {
+    grid-column: 1 / -1; font-size: 11px; color: var(--muted);
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .line-item__meta code {
+    background: rgba(168,255,62,.08); padding: 1px 5px;
+    border-radius: 2px; color: var(--gold-soft); font-size: 10.5px;
+  }
+  .line-item__actions { display: flex; gap: 4px; }
+
+  .mini-btn {
+    display: inline-grid; place-items: center;
+    width: 24px; height: 24px; border: 1px solid var(--line);
+    background: transparent; color: var(--text-soft); border-radius: 3px;
+    cursor: pointer; font-size: 12px; line-height: 1;
+  }
+  .mini-btn:hover { border-color: var(--line-strong); color: var(--gold-soft); }
+  .mini-btn:disabled { opacity: .35; cursor: default; }
+  .mini-btn--danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .add-line {
+    display: grid; gap: 6px; padding: 12px;
+    border: 1px dashed var(--line-strong); border-radius: 4px;
+    background: rgba(168,255,62,.03);
+  }
+  .add-line input {
+    width: 100%; padding: 6px 8px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 3px;
+  }
+  .add-line input:focus { outline: none; border-color: var(--gold); }
+
+  /* Content */
+  .panel-head {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .panel-head__actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .edit-grid {
+    display: flex; gap: 10px; flex-wrap: wrap; width: 100%; margin-bottom: 14px;
+  }
+  .edit-field { flex: 1; min-width: 150px; }
+  .edit-field label {
+    display: block; font-size: 11px; color: var(--muted); 
+    text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.1em;
+  }
+  .edit-field input {
+    width: 100%; padding: 8px; background: var(--bg); 
+    border: 1px solid var(--line); color: var(--text); border-radius: 3px;
+  }
+  .edit-field input:focus { outline: none; border-color: var(--gold); }
+
+  .bulk-add { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 14px; }
+  .bulk-add textarea {
+    width: 100%; min-height: 76px; padding: 8px 10px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 3px;
+    font-family: ui-monospace, monospace; font-size: 12.5px; resize: vertical;
+  }
+  .bulk-add textarea:focus { outline: none; border-color: var(--gold); }
+  .bulk-add .ed-btn { align-self: start; }
+
+  /* Table */
+  .photo-table { width: 100%; border-collapse: collapse; }
+  .photo-table th, .photo-table td {
+    padding: 8px 10px; border-bottom: 1px solid var(--line);
+    text-align: left; vertical-align: middle;
+  }
+  .photo-table th {
+    position: sticky; top: 0; z-index: 1; background: var(--bg);
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400;
+  }
+  .photo-table tr:hover td { background: rgba(168,255,62,.03); }
+  .photo-table td.num { color: var(--muted); font-size: 12px; width: 42px; }
+  .photo-table td.thumb { width: 60px; padding: 6px 4px; }
+  .photo-table .thumb img {
+    width: 46px; height: 46px; object-fit: cover; border-radius: 3px;
+    background: #060e08; border: 1px solid var(--line); display: block;
+  }
+  .photo-table .thumb.missing img { opacity: .18; }
+  .photo-table input {
+    width: 100%; padding: 5px 7px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 3px;
+    font-family: ui-monospace, monospace; font-size: 12.5px;
+  }
+  .photo-table input:focus { outline: none; border-color: var(--gold); }
+  .photo-table input.dim-input { max-width: 70px; }
+  .photo-table td.actions { width: 150px; text-align: right; }
+  .photo-table .actions .mini-btn { margin-left: 3px; }
+
+  /* Toast */
+  .ed-toast {
+    position: fixed; left: 50%; bottom: 24px;
+    transform: translate(-50%, 16px); padding: 10px 18px;
+    background: linear-gradient(180deg,#f6f7e2,#e6eac6); color: #16220f;
+    border: 1px solid #8fa75c; border-radius: 3px;
+    box-shadow: 0 20px 40px -20px rgba(0,0,0,.8);
+    opacity: 0; visibility: hidden; transition: opacity .25s, transform .25s, visibility .25s;
+    z-index: 1000; font-size: 13px; max-width: calc(100vw - 32px);
+  }
+  .ed-toast.is-visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+  .ed-toast.is-error { background: #3a1414; color: #ffb4b4; border-color: #a94444; }
+
+  @media (max-width: 860px) {
+    .ed-main { grid-template-columns: 1fr; }
+    .ed-sidebar { border-right: 0; border-bottom: 1px solid var(--line); max-height: 280px; }
+    .photo-table td.actions { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="ed-header">
+  <h1>Редактор image_list <small>Питомник «Добби» · галерея</small></h1>
+  <div class="ed-header__actions">
+    <button class="ed-btn ed-btn--gold" id="btnScanFolder" type="button">📁 Сканировать папку images</button>
+    <input type="file" id="folderInput" webkitdirectory multiple hidden>
+    <input type="file" id="filesInput" accept="image/*" multiple hidden>
+    <button class="ed-btn" id="btnAddFiles" type="button">+ Добавить файлы</button>
+    <button class="ed-btn" id="btnImport" type="button">Импорт файла</button>
+    <input type="file" id="fileInput" accept=".js,.json,application/javascript,application/json" hidden>
+    <button class="ed-btn" id="btnExportJs" type="button">💾 Скачать image_list.js</button>
+    <button class="ed-btn" id="btnExportJson" type="button">JSON</button>
+    <button class="ed-btn ed-btn--danger" id="btnReset" type="button">Сбросить</button>
+  </div>
+</header>
+
+<main class="ed-main">
+  <aside class="ed-sidebar">
+    <h2 class="ed-section-title">Линии окрасов</h2>
+    <ul class="line-list" id="lineList"></ul>
+    <div class="add-line">
+      <input id="newKey" placeholder="key (напр. choc)" autocomplete="off">
+      <input id="newCat" placeholder="Имя кошки" autocomplete="off">
+      <input id="newCoat" placeholder="Окрас" autocomplete="off">
+      <button class="ed-btn" id="btnAddLine" type="button">+ Добавить линию</button>
+    </div>
+    <p class="ed-section-title" style="margin-top:20px">Состояние</p>
+    <p id="sourceInfo" style="font-size:12px;color:var(--muted);margin:0"></p>
+  </aside>
+
+  <section class="ed-content" id="content"></section>
+</main>
+
+<div class="ed-toast" id="toast"></div>
+
+<!-- Подключаем файл с данными -->
+<script src="image_list.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const STORAGE_KEY = "db-image-list-v3";
+
+  /* ---------------- Toast ---------------- */
+  const toastEl = $("#toast");
+  let toastTimer = 0;
+  function toast(msg, isError = false) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.toggle("is-error", isError);
+    toastEl.classList.add("is-visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("is-visible"), 3600);
+  }
+
+  /* ---------------- Состояние ---------------- */
+  let state = { lines: [], activeKey: null };
+  
+  function emptyState() { return { lines: [], activeKey: null }; }
+
+  function normalizeLine(line) {
+    const key = String(line.key || "");
+    let photos = [];
+    if (Array.isArray(line.photos)) {
+      photos = line.photos.map((p) => ({
+        src: String(p.src || ""),
+        w: Number(p.w) || undefined,
+        h: Number(p.h) || undefined,
+      })).filter(p => p.src);
+    } else if (Array.isArray(line.ids)) {
+      photos = line.ids.map((id) => ({ src: `images/${key}/${id}.jpg` }));
+    }
+    return {
+      key,
+      cat: String(line.cat || ""),
+      coat: String(line.coat || ""),
+      folder: String(line.folder || (photos[0] ? photos[0].src.replace(/\/[^/]+$/, "") : "")),
+      photos,
+    };
+  }
+
+  function fromImageList(data) {
+    const lines = ((data && data.lines) || []).map(normalizeLine);
+    return { lines, activeKey: lines[0] ? lines[0].key : null };
+  }
+
+  function toImageList() {
+    return {
+      lines: state.lines.map((line) => ({
+        key: line.key,
+        cat: line.cat,
+        coat: line.coat,
+        folder: line.folder || "",
+        photos: line.photos.map((p) => {
+          const out = { src: p.src };
+          if (p.w) out.w = p.w;
+          if (p.h) out.h = p.h;
+          return out;
+        }),
+      })),
+    };
+  }
+
+  /* ---------------- Storage ---------------- */
+  function saveLocal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return null;
+  }
+
+  /* ---------------- Инициализация ---------------- */
+  function init() {
+    const local = loadLocal();
+    let source = "пусто";
+    if (local) {
+      state = local;
+      source = "localStorage (сохраненные изменения)";
+    } else if (window.IMAGE_LIST && Array.isArray(window.IMAGE_LIST.lines)) {
+      state = fromImageList(window.IMAGE_LIST);
+      source = "image_list.js";
+    } else {
+      state = emptyState();
+      source = "image_list.js не найден или пуст";
+    }
+    if (!state.activeKey && state.lines[0]) state.activeKey = state.lines[0].key;
+    const info = $("#sourceInfo");
+    if (info) info.textContent = source;
+    render();
+  }
+
+  /* ---------------- Рендер ---------------- */
+  function getActiveLine() { 
+    return state.lines.find((l) => l.key === state.activeKey) || null; 
+  }
+
+  function render() {
+    renderSidebar();
+    renderContent();
+    saveLocal();
+  }
+
+  function renderSidebar() {
+    const list = $("#lineList");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!state.lines.length) {
+      list.innerHTML = `<li style="color:var(--muted);font-size:12px;">Пока нет линий.</li>`;
+      return;
+    }
+    state.lines.forEach((line, idx) => {
+      const li = document.createElement("li");
+      li.className = "line-item" + (line.key === state.activeKey ? " is-active" : "");
+      li.dataset.key = line.key;
+      li.innerHTML = `
+        <span class="line-item__name">${escapeHtml(line.cat || "(без имени)")}</span>
+        <span class="line-item__actions">
+          <button class="mini-btn" type="button" data-act="up" ${idx === 0 ? "disabled" : ""}>↑</button>
+          <button class="mini-btn" type="button" data-act="down" ${idx === state.lines.length - 1 ? "disabled" : ""}>↓</button>
+          <button class="mini-btn mini-btn--danger" type="button" data-act="del">×</button>
+        </span>
+        <span class="line-item__meta">
+          <code>${escapeHtml(line.key)}</code> · ${escapeHtml(line.coat)} · ${line.photos.length} фото
+        </span>`;
+      list.appendChild(li);
+    });
+  }
+
+  function renderContent() {
+    const box = $("#content");
+    if (!box) return;
+
+    if (!state.lines.length) {
+      box.innerHTML = `<div class="empty"><h3>Галерея пуста</h3><p>Нажмите «📁 Сканировать папку images»</p></div>`;
+      return;
+    }
+
+    const line = getActiveLine();
+    if (!line) return;
+    box.innerHTML = "";
+
+    // Панель редактирования свойств линии
+    const head = document.createElement("div");
+    head.className = "panel-head";
+    head.innerHTML = `
+      <div class="edit-grid">
+        <div class="edit-field">
+          <label>Имя кошки</label>
+          <input type="text" id="editCat" value="${escapeAttr(line.cat)}">
+        </div>
+        <div class="edit-field">
+          <label>Окрас</label>
+          <input type="text" id="editCoat" value="${escapeAttr(line.coat)}">
+        </div>
+        <div class="edit-field">
+          <label>Ключ (ID)</label>
+          <input type="text" id="editKey" value="${escapeAttr(line.key)}">
+        </div>
+        <div class="edit-field">
+          <label>Папка</label>
+          <input type="text" id="editFolder" value="${escapeAttr(line.folder)}">
+        </div>
+      </div>
+      <div class="panel-head__actions">
+        <button class="ed-btn" id="btnDetectAll" type="button">Размеры всем</button>
+        <button class="ed-btn ed-btn--danger" id="btnClearPhotos" type="button">Очистить фото</button>
+      </div>
+    `;
+    box.appendChild(head);
+
+    // Обработчики полей редактирования
+    const bindField = (id, field) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        const oldKey = line.key;
+        line[field] = el.value.trim();
+        saveLocal();
+        if (field === "cat" || field === "key") renderSidebar(); 
+        if (field === "key" && state.activeKey === oldKey) state.activeKey = line.key;
+      });
+    };
+    bindField("#editCat", "cat");
+    bindField("#editCoat", "coat");
+    bindField("#editKey", "key");
+    bindField("#editFolder", "folder");
+
+    // Массовое добавление
+    const bulk = document.createElement("div");
+    bulk.className = "bulk-add";
+    bulk.innerHTML = `
+      <textarea id="bulkInput" placeholder="Пути к фото — по одному на строку.&#10;Можно полный путь: images/bambi-dobby/2177.jpg&#10;Или только имя (добавится папка линии): 2178.jpg"></textarea>
+      <button class="ed-btn ed-btn--gold" id="btnBulkAdd" type="button">+ Добавить</button>
+    `;
+    box.appendChild(bulk);
+
+    // Таблица
+    const table = document.createElement("table");
+    table.className = "photo-table";
+    table.innerHTML = `<thead><tr><th>#</th><th></th><th>Путь</th><th>W</th><th>H</th><th></th></tr></thead><tbody></tbody>`;
+    const tbody = table.querySelector("tbody");
+    
+    if (!line.photos.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Нет фото</td></tr>`;
+    } else {
+      line.photos.forEach((p, idx) => {
+        const tr = document.createElement("tr");
+        tr.dataset.idx = idx;
+        tr.innerHTML = `
+          <td class="num">${idx + 1}</td>
+          <td class="thumb"><img src="${p.src}" onerror="this.parentElement.classList.add('missing')"></td>
+          <td><input type="text" value="${escapeAttr(p.src)}" data-field="src"></td>
+          <td><input type="number" class="dim-input" value="${p.w || ''}" data-field="w"></td>
+          <td><input type="number" class="dim-input" value="${p.h || ''}" data-field="h"></td>
+          <td class="actions">
+            <button class="mini-btn" data-act="detect" title="Размер">⌕</button>
+            <button class="mini-btn" data-act="up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+            <button class="mini-btn" data-act="down" ${idx === line.photos.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="mini-btn mini-btn--danger" data-act="del">×</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    box.appendChild(table);
+
+    // Логика таблицы
+    table.addEventListener("input", (e) => {
+      const tr = e.target.closest("tr");
+      if (!tr || !tr.dataset.idx) return;
+      const idx = Number(tr.dataset.idx);
+      const photo = line.photos[idx];
+      const field = e.target.dataset.field;
+      if (field === "src") {
+        photo.src = e.target.value.trim();
+        const img = tr.querySelector("img");
+        if (img) { tr.querySelector("td.thumb").classList.remove("missing"); img.src = photo.src; }
+      } else {
+        const v = e.target.value === "" ? undefined : Number(e.target.value);
+        photo[field] = v && v > 0 ? v : undefined;
+      }
+      saveLocal();
+    });
+
+    table.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const tr = btn.closest("tr");
+      if (!tr || !tr.dataset.idx) return;
+      const idx = Number(tr.dataset.idx);
+      const act = btn.dataset.act;
+      const photo = line.photos[idx];
+
+      if (act === "del") { line.photos.splice(idx, 1); render(); }
+      else if (act === "up" && idx > 0) { [line.photos[idx-1], line.photos[idx]] = [line.photos[idx], line.photos[idx-1]]; render(); }
+      else if (act === "down" && idx < line.photos.length - 1) { [line.photos[idx+1], line.photos[idx]] = [line.photos[idx], line.photos[idx+1]]; render(); }
+      else if (act === "detect") {
+        btn.textContent = "…"; btn.disabled = true;
+        const dims = await fetchDims(photo.src);
+        btn.textContent = "⌕"; btn.disabled = false;
+        if (dims) {
+          photo.w = dims[0]; photo.h = dims[1]; saveLocal();
+          tr.querySelector('input[data-field="w"]').value = dims[0];
+          tr.querySelector('input[data-field="h"]').value = dims[1];
+          toast(`Размер: ${dims[0]}×${dims[1]}`);
+        } else toast("Не найдено", true);
+      }
+    });
+
+    // Кнопки над таблицей
+    $("#btnBulkAdd").addEventListener("click", async () => {
+      const txt = $("#bulkInput").value;
+      const parsed = parseBulk(txt, line.folder);
+      if (!parsed.length) return toast("Ничего не добавлено", true);
+      const btn = $("#btnBulkAdd"); btn.textContent = "Загрузка..."; btn.disabled = true;
+      for (const item of parsed) {
+        const dims = item.w && item.h ? [item.w, item.h] : await fetchDims(item.src);
+        line.photos.push({ src: item.src, w: dims ? dims[0] : undefined, h: dims ? dims[1] : undefined });
+      }
+      $("#bulkInput").value = ""; render(); toast(`Добавлено ${parsed.length}`);
+    });
+
+    $("#btnDetectAll").addEventListener("click", async () => {
+      const btn = $("#btnDetectAll"); btn.textContent = "Считаю..."; btn.disabled = true;
+      for (const p of line.photos) {
+        if (!p.w || !p.h) {
+          const dims = await fetchDims(p.src);
+          if (dims) { p.w = dims[0]; p.h = dims[1]; }
+        }
+      }
+      render(); toast("Размеры обновлены");
+    });
+
+    $("#btnClearPhotos").addEventListener("click", () => {
+      if (confirm("Удалить все фото из этой линии?")) { line.photos = []; render(); }
+    });
+  }
+
+  /* ---------------- События сайдбара ---------------- */
+  function bindSidebar() {
+    $("#lineList").addEventListener("click", (e) => {
+      const item = e.target.closest(".line-item");
+      if (!item) return;
+      const key = item.dataset.key;
+      const line = state.lines.find(l => l.key === key);
+      if (!line) return;
+
+      const btn = e.target.closest("button[data-act]");
+      if (btn) {
+        e.stopPropagation();
+        const idx = state.lines.indexOf(line);
+        if (btn.dataset.act === "up" && idx > 0) { [state.lines[idx-1], state.lines[idx]] = [state.lines[idx], state.lines[idx-1]]; render(); }
+        else if (btn.dataset.act === "down" && idx < state.lines.length - 1) { [state.lines[idx+1], state.lines[idx]] = [state.lines[idx], state.lines[idx+1]]; render(); }
+        else if (btn.dataset.act === "del") {
+          if (confirm(`Удалить линию "${line.cat}"?`)) {
+            state.lines.splice(idx, 1);
+            if (state.activeKey === key) state.activeKey = state.lines[0]?.key || null;
+            render();
+          }
+        }
+        return;
+      }
+      state.activeKey = key; render();
+    });
+
+    $("#btnAddLine").addEventListener("click", () => {
+      const key = $("#newKey").value.trim();
+      const cat = $("#newCat").value.trim();
+      const coat = $("#newCoat").value.trim();
+      if (!key) return toast("Укажите key (латиницей)", true);
+      if (state.lines.some(l => l.key === key)) return toast("Такой key уже есть", true);
+      state.lines.push({ key, cat, coat, folder: `images/${key}`, photos: [] });
+      state.activeKey = key;
+      $("#newKey").value = ""; $("#newCat").value = ""; $("#newCoat").value = "";
+      render(); toast("Линия добавлена");
+    });
+  }
+
+  /* ---------------- Сканирование ---------------- */
+  function bindScan() {
+    $("#btnScanFolder").addEventListener("click", () => $("#folderInput").click());
+    $("#folderInput").addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files);
+      e.target.value = "";
+      await scanFiles(files);
+    });
+
+    $("#btnAddFiles").addEventListener("click", () => $("#filesInput").click());
+    $("#filesInput").addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files);
+      e.target.value = "";
+      const line = getActiveLine();
+      if (!line) return toast("Выберите линию", true);
+      let added = 0;
+      for (const f of files) {
+        if (!f.type.startsWith("image/")) continue;
+        const src = line.folder ? `${line.folder}/${f.name}` : f.name;
+        if (line.photos.some(p => p.src === src)) continue;
+        const dims = await fileDims(f);
+        line.photos.push({ src, w: dims?.[0], h: dims?.[1] });
+        added++;
+      }
+      render(); toast(`Добавлено ${added} фото`);
+    });
+  }
+
+  async function scanFiles(files) {
+    const images = files.filter(f => f.type.startsWith("image/"));
+    if (!images.length) return toast("Нет картинок", true);
+    
+    const groups = new Map();
+    images.forEach(f => {
+      const rel = f.webkitRelativePath || f.name;
+      const parts = rel.split("/");
+      const folder = parts.length > 2 ? parts[1] : "photos"; // images/folder/file.jpg
+      if (!groups.has(folder)) groups.set(folder, []);
+      groups.get(folder).push(f);
+    });
+
+    let newLines = 0, newPhotos = 0;
+    for (const [folder, items] of groups) {
+      let line = state.lines.find(l => l.key === folder || l.folder.includes(folder));
+      if (!line) {
+        line = { key: folder, cat: folder, coat: "", folder: `images/${folder}`, photos: [] };
+        state.lines.push(line); newLines++;
+      }
+      for (const f of items) {
+        const src = `images/${folder}/${f.name}`;
+        if (line.photos.some(p => p.src === src)) continue;
+        const dims = await fileDims(f);
+        line.photos.push({ src, w: dims?.[0], h: dims?.[1] });
+        newPhotos++;
+      }
+    }
+    if (!state.activeKey && state.lines[0]) state.activeKey = state.lines[0].key;
+    render(); toast(`Добавлено: ${newPhotos} фото, ${newLines} линий`);
+  }
+
+  /* ---------------- Экспорт / Импорт ---------------- */
+  function bindHeader() {
+    $("#btnExportJs").addEventListener("click", () => {
+      const data = toImageList();
+      const linesJs = data.lines.map(line => {
+        const photosJs = line.photos.map(p => `        { src: ${JSON.stringify(p.src)}, w: ${p.w||600}, h: ${p.h||400} },`).join("\n");
+        return `    {\n      key: ${JSON.stringify(line.key)},\n      cat: ${JSON.stringify(line.cat)},\n      coat: ${JSON.stringify(line.coat)},\n      folder: ${JSON.stringify(line.folder||"")},\n      photos: [\n${photosJs}\n      ],\n    },`;
+      }).join("\n");
+
+      const content = `/* ==========================================================================\n   Данные галереи питомника «Добби»\n   ========================================================================== */\nwindow.IMAGE_LIST = {\n  lines: [\n${linesJs}\n  ]\n};\n`;
+      const blob = new Blob([content], { type: "application/javascript;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "image_list.js";
+      a.click();
+      toast("Скачано! Положите файл в папку с index.html");
+    });
+
+    $("#btnExportJson").addEventListener("click", () => {
+      const json = JSON.stringify(toImageList(), null, 2);
+      const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "image_list.json";
+      a.click();
+      toast("JSON скачан");
+    });
+
+    $("#btnImport").addEventListener("click", () => $("#fileInput").click());
+    $("#fileInput").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result);
+          let data;
+          if (f.name.endsWith(".json")) data = JSON.parse(text);
+          else {
+            const m = text.match(/window\.IMAGE_LIST\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
+            data = (new Function("return " + m[1]))();
+          }
+          state = fromImageList(data);
+          render(); toast("Импортировано!");
+        } catch (err) { toast("Ошибка: " + err.message, true); }
+      };
+      reader.readAsText(f);
+      e.target.value = "";
+    });
+
+    $("#btnReset").addEventListener("click", () => {
+      if (confirm("Сбросить все изменения и загрузить из image_list.js?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        init();
+      }
+    });
+  }
+
+  /* ---------------- Утилиты ---------------- */
+  function parseBulk(text, folder) {
+    return text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(line => {
+      const parts = line.split(/[\s,;]+/).filter(Boolean);
+      let src = parts[0].replace(/\\/g, "/");
+      if (!src.includes("/") && folder) src = `${folder}/${src}`;
+      if (!/\.(jpe?g|png|webp|avif)$/i.test(src)) return null;
+      return { src, w: Number(parts[1]) || undefined, h: Number(parts[2]) || undefined };
+    }).filter(Boolean);
+  }
+
+  function fetchDims(src) {
+    return new Promise(res => {
+      const img = new Image();
+      img.onload = () => res([img.naturalWidth, img.naturalHeight]);
+      img.onerror = () => res(null);
+      img.src = src + "?_=" + Date.now();
+    });
+  }
+  
+  function fileDims(file) {
+    return new Promise(res => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); res([img.naturalWidth, img.naturalHeight]); };
+      img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+      img.src = url;
+    });
+  }
+  
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  // Запуск
+  init(); 
+  bindSidebar(); 
+  bindScan(); 
+  bindHeader();
+})();
+</script>
+</body>
+</html>
