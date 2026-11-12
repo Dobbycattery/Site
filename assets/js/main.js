@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Добби — сценарии
+   Добби — сценарии (Полная версия: галерея, дневник с чернилами, магия)
    ========================================================================== */
 (() => {
   "use strict";
@@ -8,9 +8,10 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const isMobile = window.matchMedia("(max-width: 768px)").matches || !finePointer;
 
   /* ------------------------------------------------------------------
-     1. Данные галереи — читаются из image_list.js
+     1. ДАННЫЕ ГАЛЕРЕИ — читаются из image_list.js
      ------------------------------------------------------------------ */
   const DATA = window.IMAGE_LIST || { lines: [] };
   const LINES = (Array.isArray(DATA.lines) ? DATA.lines : [])
@@ -33,13 +34,6 @@
     }))
     .filter((line) => line.key && line.photos.length);
 
-  if (!LINES.length) {
-    console.warn(
-      "[Добби] image_list.js не загружен или пуст. " +
-      "Откройте image-editor.html, чтобы собрать список фотографий."
-    );
-  }
-
   const PHOTOS = [];
   LINES.forEach((line) => {
     line.photos.forEach((photo, i) => {
@@ -54,21 +48,24 @@
       });
     });
   });
-  PHOTOS.sort((a, b) => Number(a.id) - Number(b.id));
 
   /* ------------------------------------------------------------------
-     2. Галерея
+     2. ГАЛЕРЕЯ
      ------------------------------------------------------------------ */
   const grid = $("#galleryGrid");
   const status = $("#galleryStatus");
   const loadMore = $("#loadMore");
   const galleryFoot = loadMore ? loadMore.closest(".gallery__foot") : null;
-  // --- АВТОМАТИЧЕСКОЕ СОЗДАНИЕ КНОПОК ФИЛЬТРА ---
+  const PAGE = 15;
+
+  let filter = "all";
+  let shown = PAGE;
+  let currentList = PHOTOS;
+
   const filtersContainer = document.querySelector(".filters");
   if (filtersContainer) {
-    filtersContainer.innerHTML = ""; // Очищаем старые жестко прописанные кнопки
+    filtersContainer.innerHTML = "";
 
-    // 1. Создаем кнопку "Все"
     const allBtn = document.createElement("button");
     allBtn.className = "chip is-active";
     allBtn.type = "button";
@@ -77,7 +74,6 @@
     allBtn.innerHTML = `Все <span class="chip__count">${PHOTOS.length}</span>`;
     filtersContainer.appendChild(allBtn);
 
-    // 2. Создаем кнопки для каждой линии из image_list.js
     LINES.forEach((line) => {
       const count = line.photos.length;
       const btn = document.createElement("button");
@@ -86,7 +82,6 @@
       btn.dataset.filter = line.key;
       btn.setAttribute("aria-pressed", "false");
       
-      // Берем первое слово из окраса (например, "шоколадный окрас" -> "Шоколадный")
       let shortName = line.coat ? line.coat.split(" ")[0] : line.cat;
       shortName = shortName.charAt(0).toUpperCase() + shortName.slice(1);
 
@@ -95,9 +90,8 @@
     });
   }
 
-  // Обновляем список кнопок для дальнейшей работы скрипта
   const chips = $$("[data-filter]");
-  // --- ДИНАМИЧЕСКИЙ РАСЧЕТ ЦИФР ---
+
   function pluralize(count, one, few, many) {
     const n = Math.abs(count) % 100;
     const n1 = n % 10;
@@ -106,32 +100,11 @@
     if (n1 === 1) return one;
     return many;
   }
-
-  // 1. Обновляем цифры на кнопках фильтра (Все, Шоколад, Голубой...)
-  chips.forEach((chip) => {
-    const filterKey = chip.dataset.filter;
-    const countSpan = chip.querySelector(".chip__count");
-    if (countSpan) {
-      const count = filterKey === "all"
-        ? PHOTOS.length
-        : PHOTOS.filter((p) => p.line.key === filterKey).length;
-      countSpan.textContent = count;
-    }
-  });
-
-  // 2. Обновляем текст в карточке "Портретная галерея" (блок "Три двери")
   const promoEyebrow = document.querySelector('.promo-card__eyebrow');
   if (promoEyebrow && promoEyebrow.textContent.toLowerCase().includes('портрет')) {
-    const count = PHOTOS.length;
-    const word = pluralize(count, "портрет", "портрета", "портретов");
-    promoEyebrow.textContent = `${count} ${word}`;
+    const word = pluralize(PHOTOS.length, "портрет", "портрета", "портретов");
+    promoEyebrow.textContent = `${PHOTOS.length} ${word}`;
   }
-  // ---------------------------------
-  const PAGE = 15;
-
-  let filter = "all";
-  let shown = PAGE;
-  let currentList = PHOTOS;
 
   function makeItem(photo, indexInList) {
     const btn = document.createElement("button");
@@ -182,45 +155,26 @@
     }
   }
 
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => setFilter(chip.dataset.filter));
-  });
-
-  if (loadMore) {
-    loadMore.addEventListener("click", () => {
-      shown = Math.min(shown + PAGE, currentList.length);
-      render(false);
-    });
-  }
-
-  $$(".link-filter").forEach((btn) => {
-    btn.addEventListener("click", () => setFilter(btn.dataset.filterTarget, { scroll: true }));
-  });
-
+  chips.forEach((chip) => chip.addEventListener("click", () => setFilter(chip.dataset.filter)));
+  if (loadMore) loadMore.addEventListener("click", () => { shown = Math.min(shown + PAGE, currentList.length); render(false); });
+  $$(".link-filter").forEach((btn) => btn.addEventListener("click", () => setFilter(btn.dataset.filterTarget, { scroll: true })));
   render(true);
 
   /* ------------------------------------------------------------------
-     3. Лайтбокс
+     3. ЛАЙТБОКС
      ------------------------------------------------------------------ */
-  const lightbox = $("#lightbox");
-  const lbImg = $("#lightboxImg");
-  const lbCap = $("#lightboxCap");
-  const lbCount = $("#lightboxCount");
-  const lbClose = $("#lightboxClose");
-  const lbPrev = $("#lightboxPrev");
-  const lbNext = $("#lightboxNext");
-  let lbIndex = 0;
-  let lastFocused = null;
+  const lightbox = $("#lightbox"), lbImg = $("#lightboxImg"), lbCap = $("#lightboxCap"), lbCount = $("#lightboxCount");
+  const lbClose = $("#lightboxClose"), lbPrev = $("#lightboxPrev"), lbNext = $("#lightboxNext");
+  let lbIndex = 0, lastFocused = null;
 
   function paintLightbox() {
     const photo = currentList[lbIndex];
     if (!photo || !lbImg) return;
     lbImg.src = photo.src;
-    lbImg.alt = `${photo.line.cat} — ориентальная короткошёрстная, ${photo.line.coat}`;
+    lbImg.alt = `${photo.line.cat} — ${photo.line.coat}`;
     lbCap.textContent = `${photo.line.cat} · ${photo.line.coat} · питомник «Добби»`;
     lbCount.textContent = `${lbIndex + 1} / ${currentList.length}`;
 
-    /* в режиме зума фото показывается в натуральную величину */
     if (lightbox.classList.contains("zoomed")) {
       lbImg.style.width = `${photo.w}px`;
       lbImg.style.height = `${photo.h}px`;
@@ -237,7 +191,6 @@
     if (!lbImg) return;
     const p = photo || currentList[lbIndex];
     if (!p) return;
-    /* снимки небольшие — аккуратно увеличиваем их под экран */
     const maxW = Math.min(window.innerWidth * 0.9, 1000);
     const maxH = window.innerHeight * 0.76;
     const ratio = p.w / p.h;
@@ -271,15 +224,12 @@
     if (!currentList.length) return;
     lbIndex = (lbIndex + delta + currentList.length) % currentList.length;
     if (lightbox.classList.contains("zoomed")) {
-      /* листаем и в зуме — но сбрасываем к обычному виду, как в системных галереях */
       lightbox.classList.remove("zoomed");
       document.body.style.overflow = "hidden";
     }
     paintLightbox();
   }
 
-  /* зум по двойному тапу / двойному клику: Facebook-style,
-     мобильная галерея без этого неудобна — фото слишком мелкие */
   function toggleZoom() {
     if (!lightbox || !lbImg) return;
     const on = lightbox.classList.toggle("zoomed");
@@ -292,18 +242,20 @@
     }
   }
 
-  /* вью-порт/поворот: пересчитываем размер фото в обычном режиме */
   let rotTimer = 0;
   window.addEventListener("resize", () => {
     if (!lightbox || lightbox.hidden || lightbox.classList.contains("zoomed")) return;
     clearTimeout(rotTimer);
     rotTimer = setTimeout(() => fitLightbox(), 180);
   });
-  lightbox.addEventListener("dblclick", (e) => {
-    if (e.target === lightbox || e.target.closest(".lightbox__top") || e.target.closest(".lightbox__nav")) return;
-    e.preventDefault();
-    toggleZoom();
-  });
+  
+  if (lightbox) {
+    lightbox.addEventListener("dblclick", (e) => {
+      if (e.target === lightbox || e.target.closest(".lightbox__top") || e.target.closest(".lightbox__nav")) return;
+      e.preventDefault();
+      toggleZoom();
+    });
+  }
   if (grid) {
     grid.addEventListener("click", (e) => {
       const item = e.target.closest(".gallery__item");
@@ -317,27 +269,16 @@
   if (lbNext) lbNext.addEventListener("click", () => stepLightbox(1));
 
   if (lightbox) {
-    lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) closeLightbox();
-    });
+    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLightbox(); });
 
     document.addEventListener("keydown", (e) => {
       if (lightbox.hidden) return;
       if (e.key === "Escape") { e.preventDefault(); closeLightbox(); }
       if (e.key === "ArrowLeft") { e.preventDefault(); stepLightbox(-1); }
       if (e.key === "ArrowRight") { e.preventDefault(); stepLightbox(1); }
-      if (e.key === "Tab") {
-        const focusables = [lbClose, lbPrev, lbNext].filter(Boolean);
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
     });
 
-    let touchX = 0;
-    let touchY = 0;
-    let touchT = 0;
+    let touchX = 0, touchY = 0, touchT = 0;
     lightbox.addEventListener("touchstart", (e) => {
       touchX = e.changedTouches[0].clientX;
       touchY = e.changedTouches[0].clientY;
@@ -347,109 +288,56 @@
       const dx = e.changedTouches[0].clientX - touchX;
       const dy = e.changedTouches[0].clientY - touchY;
       const quick = Date.now() - touchT < 400 && Math.hypot(dx, dy) < 24;
-      if (lightbox.classList.contains("zoomed")) return; /* в зуме скроллим, не листаем */
-      if (quick) return; /* тап без движения — это клик, не свайп */
+      if (lightbox.classList.contains("zoomed")) return;
+      if (quick) return;
       if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) stepLightbox(dx > 0 ? -1 : 1);
     }, { passive: true });
   }
 
   /* ------------------------------------------------------------------
-     4. Тема «Люмос / Нокс»
+     4. ТЕМА
      ------------------------------------------------------------------ */
-  const root = document.documentElement;
-  const themeToggle = $("#themeToggle");
-
-  function storeTheme(value) {
-    try { localStorage.setItem("db-theme", value); } catch (err) { /* file:// может запрещать */ }
-  }
-
+  const root = document.documentElement, themeToggle = $("#themeToggle");
   function applyTheme(value) {
     root.dataset.theme = value;
-    if (themeToggle) {
-      themeToggle.setAttribute("aria-label", value === "dark" ? "Включить свет: Люмос" : "Погасить свет: Нокс");
-    }
+    if (themeToggle) themeToggle.setAttribute("aria-label", value === "dark" ? "Включить свет: Люмос" : "Погасить свет: Нокс");
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", value === "dark" ? "#04100a" : "#eff5e2");
-    dustColors();
+    if (typeof dustColors === "function") dustColors();
   }
-
-  try {
-    const saved = localStorage.getItem("db-theme");
-    if (saved === "light" || saved === "dark") applyTheme(saved);
-  } catch (err) { /* ignore */ }
-
-  /* предпросмотр темы по ссылке: index.html?theme=light */
-  const themeParam = new URLSearchParams(window.location.search).get("theme");
-  if (themeParam === "light" || themeParam === "dark") applyTheme(themeParam);
-
+  try { const saved = localStorage.getItem("db-theme"); if (saved) applyTheme(saved); } catch (err) {}
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
-      applyTheme(root.dataset.theme === "dark" ? "light" : "dark");
-      storeTheme(root.dataset.theme);
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(next);
+      try { localStorage.setItem("db-theme", next); } catch (err) {}
     });
-  }
-
-  /* дорожка из лапок вдоль страницы */
-  const rail = $("#rail");
-  const railFill = $("#railFill");
-  const railTip = $("#railTip");
-  const railPaws = $$(".rail__paw");
-  railPaws.forEach((paw) => {
-    paw.style.top = `${parseFloat(paw.dataset.at) * 100}%`;
-  });
-
-  function updateRail(progress, y) {
-    if (!rail) return;
-    const pct = Math.max(0, Math.min(100, progress * 100));
-    if (railFill) railFill.style.height = `${pct}%`;
-    if (railTip) railTip.style.top = `${pct}%`;
-    railPaws.forEach((paw) => {
-      paw.classList.toggle("is-lit", progress >= parseFloat(paw.dataset.at));
-    });
-    rail.classList.toggle("is-on", y > 240);
   }
 
   /* ------------------------------------------------------------------
-     5. Шапка, прогресс, наверх + параллакс героя
+     5. ШАПКА, ПРОГРЕСС И ПАРАЛЛАКС
      ------------------------------------------------------------------ */
-  const header = $("#header");
-  const progressBar = $("#progressBar");
-  const toTop = $("#toTop");
-
-  const heroSection = $(".hero");
-  const heroCopy = $(".hero__copy");
-  const heroPortrait = $("#portrait");
-  const heroSeal = $(".hero__seal");
+  const header = $("#header"), progressBar = $("#progressBar"), toTop = $("#toTop");
+  const heroSection = $(".hero"), heroCopy = $(".hero__copy"), heroPortrait = $("#portrait"), heroSeal = $(".hero__seal");
   let heroHeight = 0;
 
-  function measureHero() {
-    heroHeight = heroSection ? heroSection.offsetHeight : 0;
-  }
+  function measureHero() { heroHeight = heroSection ? heroSection.offsetHeight : 0; }
   measureHero();
 
   function resetHeroParallax() {
-    [heroCopy, heroPortrait, heroSeal].forEach((el) => {
-      if (!el) return;
-      el.style.transform = "";
-      el.style.opacity = "";
-    });
+    [heroCopy, heroPortrait, heroSeal].forEach((el) => { if (el) { el.style.transform = ""; el.style.opacity = ""; } });
   }
 
   function updateHeroParallax(y) {
-    if (!heroSection) return;
-    if (reduceMotion || window.innerWidth < 900) return;
+    if (!heroSection || isMobile || reduceMotion) return;
     if (y > heroHeight + 160) return;
     const p = Math.min(1, y / (heroHeight * 0.85 || 1));
     if (heroCopy) {
       heroCopy.style.transform = `translate3d(0, ${(y * 0.2).toFixed(1)}px, 0)`;
       heroCopy.style.opacity = Math.max(0, 1 - p * 1.3).toFixed(3);
     }
-    if (heroPortrait) {
-      heroPortrait.style.transform = `translate3d(0, ${(y * 0.07).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(3)})`;
-    }
-    if (heroSeal) {
-      heroSeal.style.transform = `translate3d(0, ${(y * 0.28).toFixed(1)}px, 0) rotate(-5deg)`;
-    }
+    if (heroPortrait) heroPortrait.style.transform = `translate3d(0, ${(y * 0.07).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(3)})`;
+    if (heroSeal) heroSeal.style.transform = `translate3d(0, ${(y * 0.28).toFixed(1)}px, 0) rotate(-5deg)`;
   }
 
   function onScroll() {
@@ -459,7 +347,6 @@
     const max = document.documentElement.scrollHeight - window.innerHeight;
     const pct = max > 0 ? Math.min(100, (y / max) * 100) : 0;
     if (progressBar) progressBar.style.width = `${pct}%`;
-    updateRail(pct / 100, y);
     updateHeroParallax(y);
   }
   window.addEventListener("scroll", onScroll, { passive: true });
@@ -470,18 +357,12 @@
   });
   onScroll();
 
-  if (toTop) {
-    toTop.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
-    });
-  }
+  if (toTop) toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }));
 
   /* ------------------------------------------------------------------
-     6. Меню
+     6. МЕНЮ
      ------------------------------------------------------------------ */
-  const burger = $("#burger");
-  const nav = $("#nav");
-
+  const burger = $("#burger"), nav = $("#nav");
   function setMenu(open) {
     if (!burger || !nav) return;
     burger.setAttribute("aria-expanded", String(open));
@@ -489,21 +370,11 @@
     nav.classList.toggle("is-open", open);
     document.body.classList.toggle("menu-open", open);
   }
-
-  if (burger) {
-    burger.addEventListener("click", () => setMenu(burger.getAttribute("aria-expanded") !== "true"));
-  }
-  if (nav) {
-    nav.addEventListener("click", (e) => {
-      if (e.target.closest("a")) setMenu(false);
-    });
-  }
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && nav && nav.classList.contains("is-open")) setMenu(false);
-  });
+  if (burger) burger.addEventListener("click", () => setMenu(burger.getAttribute("aria-expanded") !== "true"));
+  if (nav) nav.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
 
   /* ------------------------------------------------------------------
-     7. Появление при скролле
+     7. ПОЯВЛЕНИЕ ПРИ СКРОЛЛЕ
      ------------------------------------------------------------------ */
   const revealEls = $$("[data-reveal]");
   if ("IntersectionObserver" in window && revealEls.length) {
@@ -518,21 +389,14 @@
 
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-in-view");
-          io.unobserve(entry.target);
-        }
+        if (entry.isIntersecting) { entry.target.classList.add("is-in-view"); io.unobserve(entry.target); }
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
-
     revealEls.forEach((el) => io.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add("is-in-view"));
   }
 
-  /* ------------------------------------------------------------------
-     8. Активный пункт меню
-     ------------------------------------------------------------------ */
   const navLinks = $$(".nav__link");
   const sections = $$("main section[id]");
   if ("IntersectionObserver" in window && sections.length) {
@@ -540,24 +404,19 @@
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         const id = entry.target.id;
-        navLinks.forEach((link) => {
-          link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`);
-        });
+        navLinks.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
       });
     }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
     sections.forEach((section) => spy.observe(section));
   }
 
   /* ------------------------------------------------------------------
-     9. FAQ
+     8. FAQ (ДНЕВНИК) — ВОЗВРАЩАЕМ ЭФФЕКТ ЧЕРНИЛ
      ------------------------------------------------------------------ */
   const faqItems = $$(".faq__item");
-
-  /* --- «намокание чернил»: слова проступают пятнами вразнобой --- */
   const faqTimers = new WeakMap();
 
   function inkWrap(paragraph) {
-    /* делим на слова, каждое получает своё время «намокания» */
     if (paragraph.dataset.wetted === "1") return;
     const text = paragraph.textContent;
     paragraph.dataset.raw = text;
@@ -587,18 +446,20 @@
   }
 
   function inkWet(paragraph, index) {
-    inkUnwrap(paragraph);
-    inkWrap(paragraph);
-    const words = $$(".ink-w", paragraph);
-    /* небольшой разброс: слово может «намокнуть» раньше или позже соседа */
-    words.forEach((w, i) => {
-      const base = index * 0.14 + i * 0.105;
-      const jitter = Math.random() * 0.16;
-      w.style.setProperty("--d", (base + jitter).toFixed(2) + "s");
-    });
-    void paragraph.offsetWidth;
-    words.forEach((w) => { w.style.animation = "none"; void w.offsetWidth; w.style.animation = ""; });
-    faqTimers.set(paragraph, setTimeout(() => inkUnwrap(paragraph), 2600 + index * 140));
+    if (isMobile) return; // Отключаем на мобильных для скорости
+    try {
+      inkUnwrap(paragraph);
+      inkWrap(paragraph);
+      const words = $$(".ink-w", paragraph);
+      words.forEach((w, i) => {
+        const base = index * 0.14 + i * 0.105;
+        const jitter = Math.random() * 0.16;
+        w.style.setProperty("--d", (base + jitter).toFixed(2) + "s");
+      });
+      void paragraph.offsetWidth;
+      words.forEach((w) => { w.style.animation = "none"; void w.offsetWidth; w.style.animation = ""; });
+      faqTimers.set(paragraph, setTimeout(() => inkUnwrap(paragraph), 2600 + index * 140));
+    } catch (err) {}
   }
 
   function wetItem(item) {
@@ -610,12 +471,16 @@
     if (!btn) return;
     btn.addEventListener("click", () => {
       const willOpen = !item.classList.contains("is-open");
+      
+      // Закрываем все остальные вопросы
       faqItems.forEach((other) => {
         other.classList.remove("is-open");
         const otherBtn = $(".faq__q", other);
         if (otherBtn) otherBtn.setAttribute("aria-expanded", "false");
         $$(".faq__a p", other).forEach(inkUnwrap);
       });
+
+      // Открываем текущий, если был закрыт
       if (willOpen) {
         item.classList.add("is-open");
         btn.setAttribute("aria-expanded", "true");
@@ -624,25 +489,10 @@
     });
   });
 
-  /* первый, уже открытый вопрос намокает при появлении в кадре */
-  const diary = $(".diary");
-  if (diary && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        io.disconnect();
-        const openItem = $(".faq__item.is-open", diary);
-        if (openItem) setTimeout(() => wetItem(openItem), 240);
-      });
-    }, { threshold: 0.3 });
-    io.observe(diary);
-  }
-
   /* ------------------------------------------------------------------
-     10. Звёздная карта, пыль и падающие звёзды
+     9. ЗВЁЗДНАЯ ПЫЛЬ И ПАДАЮЩИЕ ЗВЁЗДЫ (Canvas)
      ------------------------------------------------------------------ */
   const canvas = $("#dust");
-  /* var, а не let: applyTheme() вызывает dustColors() раньше этого места */
   var dustCtx = null;
   var particles = [];
   var stars = [];
@@ -672,7 +522,7 @@
   }
 
   function buildSky(w, h) {
-    const count = Math.max(26, Math.min(84, Math.round((w * h) / 34000)));
+    const count = isMobile ? 15 : Math.max(26, Math.min(84, Math.round((w * h) / 34000)));
     stars = Array.from({ length: count }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -683,10 +533,12 @@
       depth: 0.3 + Math.random() * 0.7,
     }));
     links = [];
-    for (let i = 0; i < stars.length; i++) {
-      for (let j = i + 1; j < stars.length; j++) {
-        const d = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
-        if (d < 168) links.push({ a: i, b: j, alpha: (1 - d / 168) * 0.1 });
+    if (!isMobile) {
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const d = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
+          if (d < 168) links.push({ a: i, b: j, alpha: (1 - d / 168) * 0.1 });
+        }
       }
     }
   }
@@ -700,7 +552,7 @@
     canvas.height = Math.round(h * dpr);
     dustCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const count = Math.max(24, Math.min(76, Math.round((w * h) / 24000)));
+    const count = isMobile ? 8 : Math.max(24, Math.min(76, Math.round((w * h) / 24000)));
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -724,9 +576,8 @@
     pointer.x += (pointer.tx - pointer.x) * 0.05;
     pointer.y += (pointer.ty - pointer.y) * 0.05;
 
-    /* созвездия рисуем через кадр — экономим GPU */
     skyFrame = (skyFrame + 1) % 2;
-    if (skyFrame === 0) {
+    if (skyFrame === 0 && !isMobile) {
       dustCtx.lineWidth = 0.5;
       links.forEach((l) => {
         const a = stars[l.a];
@@ -740,8 +591,7 @@
       });
     }
 
-    /* звёзды */
-    dustCtx.shadowBlur = 6;
+    dustCtx.shadowBlur = isMobile ? 0 : 6;
     stars.forEach((s) => {
       if (!reduceMotion) s.phase += s.speed;
       const tw = 0.55 + 0.45 * Math.sin(s.phase);
@@ -749,12 +599,11 @@
       const y = s.y + pointer.y * s.depth * 6;
       dustCtx.beginPath();
       dustCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${s.alpha * tw})`;
-      dustCtx.shadowColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${s.alpha * tw})`;
+      if (!isMobile) dustCtx.shadowColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${s.alpha * tw})`;
       dustCtx.arc(x, y, s.r, 0, Math.PI * 2);
       dustCtx.fill();
     });
 
-    /* пыль */
     particles.forEach((p) => {
       if (!reduceMotion) {
         p.x += p.vx;
@@ -768,15 +617,16 @@
       const a = p.alpha * twinkle;
       dustCtx.beginPath();
       dustCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
-      dustCtx.shadowColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a * 0.9})`;
-      dustCtx.shadowBlur = 7;
+      if (!isMobile) {
+        dustCtx.shadowColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a * 0.9})`;
+        dustCtx.shadowBlur = 7;
+      }
       dustCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       dustCtx.fill();
     });
     dustCtx.shadowBlur = 0;
 
-    /* падающая звезда */
-    if (!reduceMotion) {
+    if (!reduceMotion && !isMobile) {
       const now = performance.now();
       if (!shooting && now > nextShooting) {
         shooting = {
@@ -871,7 +721,7 @@
   }
 
   /* ------------------------------------------------------------------
-     10.5 Искры, свечение курсора, дорожка из лапок
+     10. ИСКРЫ И СВЕЧЕНИЕ КУРСОРА
      ------------------------------------------------------------------ */
   const sparkCanvas = $("#sparks");
   let sparkCtx = null;
@@ -932,7 +782,7 @@
   }
 
   function sparkBurst(x, y, count = 18, power = 1) {
-    if (!sparkCtx || reduceMotion) return;
+    if (!sparkCtx || reduceMotion || isMobile) return;
     sparkRings.push({ x, y, r: 5, life: 1 });
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -952,7 +802,7 @@
     if (!sparkRAF) sparkLoop();
   }
 
-  if (sparkCanvas && sparkCanvas.getContext && !reduceMotion) {
+  if (sparkCanvas && sparkCanvas.getContext && !reduceMotion && !isMobile) {
     sparkCtx = sparkCanvas.getContext("2d");
     sizeSparks();
     window.addEventListener("resize", sizeSparks);
@@ -961,7 +811,6 @@
       sparkBurst(e.clientX, e.clientY, 13, 1);
     });
 
-    /* лёгкий звёздный след за курсором в hero */
     let lastTrail = 0;
     document.addEventListener("pointermove", (e) => {
       const now = performance.now();
@@ -985,7 +834,6 @@
     }, { passive: true });
   }
 
-  /* искристый след за метлой */
   const broomEl = $(".broom");
   if (broomEl && sparkCtx && !reduceMotion) {
     setInterval(() => {
@@ -1009,7 +857,6 @@
     }, 80);
   }
 
-  /* мягкое свечение за курсором */
   const glow = $("#cursorGlow");
   if (glow && finePointer && !reduceMotion) {
     let gx = window.innerWidth / 2;
@@ -1048,7 +895,7 @@
   }
 
   /* ------------------------------------------------------------------
-     11. Лёгкий наклон портрета
+     11. НАКЛОН ПОРТРЕТА И КАРТОЧЕК
      ------------------------------------------------------------------ */
   const portrait = $("#portrait");
   if (portrait && finePointer && !reduceMotion) {
@@ -1074,8 +921,35 @@
     });
   }
 
+  if (finePointer && !reduceMotion) {
+    $$("[data-tilt]").forEach((card) => {
+      let raf = 0;
+      let px = 0.5;
+      let py = 0.4;
+
+      card.addEventListener("pointermove", (e) => {
+        const rect = card.getBoundingClientRect();
+        px = (e.clientX - rect.left) / rect.width;
+        py = (e.clientY - rect.top) / rect.height;
+        card.style.setProperty("--mx", `${(px * 100).toFixed(1)}%`);
+        card.style.setProperty("--my", `${(py * 100).toFixed(1)}%`);
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          card.style.transform =
+            `perspective(900px) rotateY(${((px - 0.5) * 7).toFixed(2)}deg) ` +
+            `rotateX(${((0.5 - py) * 7).toFixed(2)}deg) translateY(-4px)`;
+          raf = 0;
+        });
+      });
+
+      card.addEventListener("pointerleave", () => {
+        card.style.transform = "";
+      });
+    });
+  }
+
   /* ------------------------------------------------------------------
-     12. Магические подсказки: тост, заклинания, секрет на гербе
+     12. МАГИЯ: ЗАКЛИНАНИЯ И ТОСТЫ
      ------------------------------------------------------------------ */
   const toast = $("#toast");
   const toastText = $("#toastText");
@@ -1095,7 +969,6 @@
     sparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, count, power);
   }
 
-  /* заклинания на клавиатуре: lumos / nox / alohomora */
   const spellBuffer = [];
   document.addEventListener("keydown", (e) => {
     const target = e.target;
@@ -1122,7 +995,6 @@
     }
   });
 
-  /* три клика по гербу — маленький секрет */
   const brand = $(".brand");
   let crestClicks = 0;
   let crestTimer = 0;
@@ -1139,13 +1011,12 @@
     });
   }
 
-  /* искры при переключении света */
   if (themeToggle) {
     themeToggle.addEventListener("click", () => sparkAt(themeToggle, 12, 0.8));
   }
 
   /* ------------------------------------------------------------------
-     13. Письмо Добби
+     13. ПИСЬМО ДОББИ (с анимацией чернил)
      ------------------------------------------------------------------ */
   const letterModal = $("#letterModal");
   const letterOpen = $("#letterOpen");
@@ -1155,7 +1026,6 @@
   let letterLastFocus = null;
   let speechTimer = 0;
 
-  /* --- мокрые чернила в тексте свитка: слова проступают пятнами --- */
   const letterInkState = { wrapped: false, timer: 0 };
 
   function letterInkWrap() {
@@ -1190,31 +1060,30 @@
   }
 
   function letterWetRun() {
-    if (reduceMotion) return;
-    clearTimeout(letterInkState.timer);
-    letterInkUnwrap();
-    /* даём развернуться ситку — текст намокает сразу вслед за бумагой */
-    setTimeout(() => {
-      letterInkWrap();
-      const words = $$(".letter .ink-w");
-      words.forEach((w, i) => {
-        const base = 0.55 + (i % 9) * 0.11 + Math.random() * 0.2;
-        w.style.setProperty("--d", base.toFixed(2) + "s");
-      });
-      void document.body.offsetWidth;
-      words.forEach((w) => { w.style.animation = "none"; void w.offsetWidth; w.style.animation = ""; });
-      letterInkState.timer = setTimeout(letterInkUnwrap, 4200);
-    }, reduceMotion ? 0 : 430);
+    if (reduceMotion || isMobile) return;
+    try {
+      clearTimeout(letterInkState.timer);
+      letterInkUnwrap();
+      setTimeout(() => {
+        letterInkWrap();
+        const words = $$(".letter .ink-w");
+        words.forEach((w, i) => {
+          const base = 0.55 + (i % 9) * 0.11 + Math.random() * 0.2;
+          w.style.setProperty("--d", base.toFixed(2) + "s");
+        });
+        void document.body.offsetWidth;
+        words.forEach((w) => { w.style.animation = "none"; void w.offsetWidth; w.style.animation = ""; });
+        letterInkState.timer = setTimeout(letterInkUnwrap, 4200);
+      }, reduceMotion ? 0 : 430);
+    } catch (e) { console.warn("Ошибка анимации чернил письма:", e); }
   }
 
   function letterWetRestart() {
-    /* при открытии свитка заново: чистим spans, задержка и старт — всегда */
     clearTimeout(letterInkState.timer);
     letterInkUnwrap();
     setTimeout(letterWetRun, 20);
   }
 
-  /* Разбиваем реплику на слова, чтобы каждое «проявлялось» своим черёдом */
   const speechText = letterOpen ? letterOpen.querySelector("[data-speech]") : null;
   if (speechText) {
     const words = speechText.textContent.trim().split(/\s+/);
@@ -1232,7 +1101,6 @@
   function speak(hold = 7000) {
     if (!letterOpen) return;
     clearTimeout(speechTimer);
-    /* перезапуск перехода слов: снимаем класс в следующем кадре */
     letterOpen.classList.remove("is-speaking");
     requestAnimationFrame(() => {
       requestAnimationFrame(() => letterOpen.classList.add("is-speaking"));
@@ -1240,7 +1108,6 @@
     if (hold) speechTimer = setTimeout(() => letterOpen.classList.remove("is-speaking"), hold);
   }
 
-  /* Добби сам объявляет о письме через пару секунд */
   if (letterOpen && !reduceMotion) {
     setTimeout(() => speak(7000), 2200);
 
@@ -1263,18 +1130,17 @@
       letterOpen.classList.add("is-read");
       letterOpen.classList.remove("is-speaking");
     }
-    /* два кадра — чтобы transition разворачивания сработал, а не «прыгнул» */
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         letterModal.classList.add("is-open");
         letterWetRestart();
-        if (!reduceMotion) sparkBurst(window.innerWidth / 2, window.innerHeight * 0.42, 20, 1);
+        if (!reduceMotion && !isMobile) sparkBurst(window.innerWidth / 2, window.innerHeight * 0.42, 20, 1);
       });
     });
     setTimeout(() => {
       if (letterClose && !letterModal.hidden) letterClose.focus({ preventScroll: true });
     }, reduceMotion ? 0 : 620);
-    try { localStorage.setItem("db-letter", "1"); } catch (err) { /* ignore */ }
+    try { localStorage.setItem("db-letter", "1"); } catch (err) {}
   }
 
   function closeLetter() {
@@ -1302,63 +1168,24 @@
   if (letterModal) {
     document.addEventListener("keydown", (e) => {
       if (letterModal.hidden) return;
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeLetter();
-        return;
-      }
+      if (e.key === "Escape") { e.preventDefault(); closeLetter(); return; }
       if (e.key !== "Tab") return;
       const focusables = Array.from(letterModal.querySelectorAll("a[href], button"))
         .filter((el) => el.offsetParent !== null);
       if (!focusables.length) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
   }
 
   try {
     if (localStorage.getItem("db-letter") === "1") letterOpen?.classList.add("is-read");
-  } catch (err) { /* ignore */ }
+  } catch (err) {}
 
   /* ------------------------------------------------------------------
-     14. Промо-карточки: наклон за курсором
-     ------------------------------------------------------------------ */
-  if (finePointer && !reduceMotion) {
-    $$("[data-tilt]").forEach((card) => {
-      let raf = 0;
-      let px = 0.5;
-      let py = 0.4;
-
-      card.addEventListener("pointermove", (e) => {
-        const rect = card.getBoundingClientRect();
-        px = (e.clientX - rect.left) / rect.width;
-        py = (e.clientY - rect.top) / rect.height;
-        card.style.setProperty("--mx", `${(px * 100).toFixed(1)}%`);
-        card.style.setProperty("--my", `${(py * 100).toFixed(1)}%`);
-        if (raf) return;
-        raf = requestAnimationFrame(() => {
-          card.style.transform =
-            `perspective(900px) rotateY(${((px - 0.5) * 7).toFixed(2)}deg) ` +
-            `rotateX(${((0.5 - py) * 7).toFixed(2)}deg) translateY(-4px)`;
-          raf = 0;
-        });
-      });
-
-      card.addEventListener("pointerleave", () => {
-        card.style.transform = "";
-      });
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     15. Музыка (main.mp3)
+     14. МУЗЫКА
      ------------------------------------------------------------------ */
   const soundToggle = $("#soundToggle");
   const siteMusic = $("#siteMusic");
@@ -1381,11 +1208,8 @@
       const step = (now) => {
         const p = Math.min(1, (now - start) / duration);
         siteMusic.volume = Math.max(0, Math.min(1, from + (target - from) * p));
-        if (p < 1) {
-          fadeRAF = requestAnimationFrame(step);
-        } else if (done) {
-          done();
-        }
+        if (p < 1) fadeRAF = requestAnimationFrame(step);
+        else if (done) done();
       };
       fadeRAF = requestAnimationFrame(step);
     }
@@ -1397,7 +1221,7 @@
         musicOn = true;
         setSoundUI(true);
         fadeTo(targetVolume);
-        try { localStorage.setItem("db-music", "1"); } catch (err) { /* ignore */ }
+        try { localStorage.setItem("db-music", "1"); } catch (err) {}
       } catch (err) {
         showToast("Не получилось включить музыку. Проверьте, что main.mp3 лежит рядом с index.html.");
       }
@@ -1408,29 +1232,27 @@
       musicOn = false;
       setSoundUI(false);
       fadeTo(0, () => siteMusic.pause());
-      try { localStorage.setItem("db-music", "0"); } catch (err) { /* ignore */ }
+      try { localStorage.setItem("db-music", "0"); } catch (err) {}
     }
 
     soundToggle.addEventListener("click", () => {
-      if (musicOn) stopMusic();
-      else startMusic();
+      if (musicOn) stopMusic(); else startMusic();
     });
 
     siteMusic.addEventListener("error", () => {
       soundToggle.disabled = true;
       soundToggle.setAttribute("aria-label", "Музыка недоступна: не найден main.mp3");
-      soundToggle.title = "Положите main.mp3 рядом с index.html";
     });
 
     document.addEventListener("visibilitychange", () => {
       if (!musicOn) return;
       if (document.hidden) siteMusic.pause();
-      else siteMusic.play().catch(() => { /* ignore */ });
+      else siteMusic.play().catch(() => {});
     });
   }
 
   /* ------------------------------------------------------------------
-     16. Год
+     15. ГОД
      ------------------------------------------------------------------ */
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());

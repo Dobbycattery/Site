@@ -1284,7 +1284,10 @@ ul, ol { padding: 0; }
   transition: grid-template-rows 0.42s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .faq__item.is-open .faq__a { grid-template-rows: 1fr; }
-.faq__a > div { overflow: hidden; }
+.faq__a > div { 
+  overflow: hidden; 
+  min-height: 0;
+}
 .faq__a p {
   max-width: 70ch;
   padding: 0 46px 24px 2px;
